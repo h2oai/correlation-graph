@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "prepublish": "rm -rf build && mkdir build && rollup -c -- index.js",
-    "build": "rm -rf build && mkdir build && rollup -c  -- index.js && cp build/correlation-graph.js ~/workspace/visualizations/correlation-graph/07/",
+    "build": "rm -rf build && mkdir build && rollup -c  -- index.js && cp build/correlation-graph.js ~/workspace/visualizations/correlation-graph/07/ && cp build/correlation-graph.js ~/workspace/visualizations/correlation-graph/08/",
     "lint": "eslint index.js src --fix"
   },
   "repository": {

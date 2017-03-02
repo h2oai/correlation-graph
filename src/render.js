@@ -195,7 +195,6 @@ export default function render(selector, inputData, options) {
     .attr('class', 'label')
     .attr('dx', function (d) {
       const dxValue = `${-1 * (this.getComputedTextLength() / 2)}px`;
-      console.log('dxValue', dxValue);
       return dxValue;
     })
     .attr('dy', '.35em');
