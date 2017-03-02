@@ -24,6 +24,14 @@ function ticked(link, soloNodesIds, textMainGray, color, communities, nodeG, bac
   }).style('fill-opacity', 0.4).style('stroke', 'white').style('stroke-width', '2px');
 }
 
+/* global d3 */
+
+function dragstarted(simulation) {
+  if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+  d3.event.subject.fx = d3.event.subject.x;
+  d3.event.subject.fy = d3.event.subject.y;
+}
+
 /* global d3 _ jLouvain window document */
 /* eslint-disable newline-per-chained-call */
 var index = function () {
@@ -129,7 +137,9 @@ var index = function () {
 
     const nodesParentG = svg.append('g').attr('class', 'nodes');
 
-    const nodeG = nodesParentG.selectAll('g').data(nodes).enter().append('g').call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended));
+    const boundDragstarted = dragstarted.bind(this, simulation);
+
+    const nodeG = nodesParentG.selectAll('g').data(nodes).enter().append('g').call(d3.drag().on('start', boundDragstarted).on('drag', dragged).on('end', dragended));
 
     const nodeRadiusScale = d3.scaleLinear().domain([0, nodes.length]).range([5, 30]);
 
@@ -155,12 +165,6 @@ var index = function () {
     simulation.nodes(nodes).on('tick', boundTicked);
 
     simulation.force('link').links(links);
-  }
-
-  function dragstarted() {
-    if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-    d3.event.subject.fx = d3.event.subject.x;
-    d3.event.subject.fy = d3.event.subject.y;
   }
 
   function dragged() {

@@ -1,6 +1,7 @@
 /* global d3 _ jLouvain window document */
 /* eslint-disable newline-per-chained-call */
 import ticked from './src/ticked';
+import dragstarted from './src/dragstarted';
 
 export default function () {
   const width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
@@ -142,12 +143,14 @@ export default function () {
     const nodesParentG = svg.append('g')
       .attr('class', 'nodes');
 
+    const boundDragstarted = dragstarted.bind(this, simulation);
+
     const nodeG = nodesParentG
       .selectAll('g')
         .data(nodes)
         .enter().append('g')
         .call(d3.drag()
-          .on('start', dragstarted)
+          .on('start', boundDragstarted)
           .on('drag', dragged)
           .on('end', dragended)
         );
@@ -223,12 +226,6 @@ export default function () {
 
     simulation.force('link')
       .links(links);
-  }
-
-  function dragstarted() {
-    if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-    d3.event.subject.fx = d3.event.subject.x;
-    d3.event.subject.fy = d3.event.subject.y;
   }
 
   function dragged() {
