@@ -6,16 +6,14 @@ import dragstarted from './dragstarted';
 import dragged from './dragged';
 import dragended from './dragended';
 
-export default function render(error, graph) {
-  if (error) throw error;
-
+export default function render(selector, inputData, options) {
   const width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
   const height = 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
   const linkWeightThreshold = 0.79;
   const soloNodeLinkWeightThreshold = 0.1;
   const labelTextScalingFactor = 28;
 
-  const svg = d3.select('body').append('svg')
+  const svg = d3.select(selector).append('svg')
     .attr('width', width)
     .attr('height', height);
 
@@ -56,6 +54,7 @@ export default function render(error, graph) {
   // data-driven code starts here
   //
 
+  const graph = inputData;
   const nodes = _.cloneDeep(graph.nodes);
   const links = _.cloneDeep(graph.edges);
 

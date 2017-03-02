@@ -50,16 +50,14 @@ function dragended(simulation) {
 /* global d3 _ jLouvain window document */
 /* eslint-disable newline-per-chained-call */
 
-function render(error, graph) {
-  if (error) throw error;
-
+function render(selector, inputData, options) {
   const width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
   const height = 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
   const linkWeightThreshold = 0.79;
   const soloNodeLinkWeightThreshold = 0.1;
   const labelTextScalingFactor = 28;
 
-  const svg = d3.select('body').append('svg').attr('width', width).attr('height', height);
+  const svg = d3.select(selector).append('svg').attr('width', width).attr('height', height);
 
   const simulation = d3.forceSimulation().force('link', d3.forceLink().id(d => d.id)).force('charge', d3.forceManyBody().strength(-1000)).force('center', d3.forceCenter(width / 2, height / 2));
 
@@ -78,6 +76,7 @@ function render(error, graph) {
   // data-driven code starts here
   //
 
+  const graph = inputData;
   const nodes = _.cloneDeep(graph.nodes);
   const links = _.cloneDeep(graph.edges);
 
@@ -187,8 +186,8 @@ function render(error, graph) {
 
 /* global d3 _ jLouvain window document */
 /* eslint-disable newline-per-chained-call */
-var index = function () {
-  d3.queue().defer(d3.json, 'graph.json').await(render);
+var index = function (selector, inputData, options) {
+  render(selector, inputData, options);
 };
 
 return index;
