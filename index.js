@@ -48,7 +48,6 @@ export default function () {
 
   d3.queue()
     .defer(d3.json, 'graph.json')
-    // .defer(d3.csv, 'graphdata.csv')
     .await(analyze);
 
   function analyze(error, graph) {
@@ -56,8 +55,6 @@ export default function () {
 
     const nodes = _.cloneDeep(graph.nodes);
     const links = _.cloneDeep(graph.edges);
-
-    // const nodesForCommunityDetection = nodes.map(d => d.id);
 
     const staticLinks = graph.edges;
     const linksAboveThreshold = [];
@@ -78,9 +75,9 @@ export default function () {
       .map(d => Number(d));
     const nodesForCommunityDetection = nodesAboveThresholdIds;
 
-    // /
-    // / manage threshold for solo nodes
-    // /
+    //
+    // manage threshold for solo nodes
+    //
     const linksAboveSoloNodeThreshold = [];
     staticLinks.forEach(d => {
       if (d.weight > soloNodeLinkWeightThreshold) {
@@ -95,9 +92,9 @@ export default function () {
     const soloNodesIds = nodesAboveSoloNodeThresholdSet
       .values()
       .map(d => Number(d));
-    // /
-    // /
-    // /
+    //
+    //
+    //
 
     console.log('nodes', nodes);
     console.log('nodesAboveThresholdIds', nodesAboveThresholdIds);
