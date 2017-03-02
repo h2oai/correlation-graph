@@ -1,7 +1,8 @@
 /* global d3 _ jLouvain window document */
 /* eslint-disable newline-per-chained-call */
+import ticked from './src/ticked';
 
-export default function() {
+export default function () {
   const width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
   const height = 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
   const linkWeightThreshold = 0.79;
@@ -54,7 +55,7 @@ export default function() {
     '#DCBDCF',
     '#E25A42',
     '#F6B656',
-    '#F2DA57'
+    '#F2DA57',
   ];
 
   // http://colorbrewer2.org/?type=qualitative&scheme=Set3&n=12
@@ -70,8 +71,8 @@ export default function() {
     '#d9d9d9',
     '#bc80bd',
     '#ccebc5',
-    '#ffed6f'
-  ]
+    '#ffed6f',
+  ];
 
   // http://colorbrewer2.org/?type=qualitative&scheme=Paired&n=12
   const boldAlternating12 = [
@@ -87,7 +88,7 @@ export default function() {
     '#fdbf6f',
     '#cab2d6',
     '#ffff99',
-  ]
+  ];
 
   const textMainGray = '#635F5D';
 
@@ -120,15 +121,15 @@ export default function() {
     linksAboveThreshold.forEach(d => {
       nodesAboveThresholdSet.add(d.source);
       nodesAboveThresholdSet.add(d.target);
-    })
+    });
     const nodesAboveThresholdIds = nodesAboveThresholdSet
       .values()
       .map(d => Number(d));
     const nodesForCommunityDetection = nodesAboveThresholdIds;
 
-    ///
-    /// manage threshold for solo nodes
-    ///
+    // /
+    // / manage threshold for solo nodes
+    // /
     const linksAboveSoloNodeThreshold = [];
     staticLinks.forEach(d => {
       if (d.weight > soloNodeLinkWeightThreshold) {
@@ -139,13 +140,13 @@ export default function() {
     linksAboveSoloNodeThreshold.forEach(d => {
       nodesAboveSoloNodeThresholdSet.add(d.source);
       nodesAboveSoloNodeThresholdSet.add(d.target);
-    })
+    });
     const soloNodesIds = nodesAboveSoloNodeThresholdSet
       .values()
       .map(d => Number(d));
-    ///
-    ///
-    ///
+    // /
+    // /
+    // /
 
     console.log('nodes', nodes);
     console.log('nodesAboveThresholdIds', nodesAboveThresholdIds);
@@ -159,11 +160,11 @@ export default function() {
     // where `degree` is the number of links
     // that a node has
     //
-    nodes.forEach(function(d) {
+    nodes.forEach(d => {
       d.inDegree = 0;
       d.outDegree = 0;
     });
-    links.forEach(function(d) {
+    links.forEach(d => {
       nodes[d.source].outDegree += 1;
       nodes[d.target].inDegree += 1;
     });
@@ -224,8 +225,8 @@ export default function() {
 
 
     const label = nodeG.append('text')
-      .text(function(d) { return d.name; })
-      .style('font-size', function(d) { 
+      .text(d => d.name)
+      .style('font-size', function (d) {
         console.log('d from node label', d);
         return `${
           Math.max(
@@ -235,12 +236,12 @@ export default function() {
             ),
             8
           )
-        }px`; 
+        }px`;
       })
       .style('fill', '#666')
       .attr('class', 'label')
-      .attr('dx', function(d) {
-        const dxValue = `${-1* (this.getComputedTextLength() / 2)}px`;
+      .attr('dx', function (d) {
+        const dxValue = `${-1 * (this.getComputedTextLength() / 2)}px`;
         console.log('dxValue', dxValue);
         return dxValue;
       })
@@ -256,45 +257,24 @@ export default function() {
         .style('font-size', 20)
         .text(d => d.name);
 
+    const boundTicked = ticked.bind(
+      this,
+      link,
+      soloNodesIds,
+      textMainGray,
+      color,
+      communities,
+      nodeG,
+      backgroundNode,
+      node
+    );
+
     simulation
       .nodes(nodes)
-      .on('tick', ticked);
+      .on('tick', boundTicked);
 
     simulation.force('link')
       .links(links);
-
-    function ticked() {
-      link
-        .attr('x1', d => d.source.x)
-        .attr('y1', d => d.source.y)
-        .attr('x2', d => d.target.x)
-        .attr('y2', d => d.target.y)
-        .style('stroke', (d, i) => {
-          if (soloNodesIds.indexOf(d.source.id) === -1) {
-            return textMainGray;
-          }
-          return color(communities[d.source.id])
-        })
-        .style('stroke-opacity', 0.4);
-
-      nodeG
-        .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; });
-
-      backgroundNode
-        .style('fill', 'white')
-        .style('fill-opacity', 1)
-
-      node
-        .style('fill', (d, i) => {
-          if (soloNodesIds.indexOf(d.id) === -1) {
-            return textMainGray;
-          }
-          return color(communities[d.id])
-        })
-        .style('fill-opacity', 0.4)
-        .style('stroke', 'white')
-        .style('stroke-width', '2px')
-    }
   }
 
   function dragstarted() {
@@ -313,5 +293,4 @@ export default function() {
     d3.event.subject.fx = null;
     d3.event.subject.fy = null;
   }
-
 }

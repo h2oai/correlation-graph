@@ -4,9 +4,28 @@
 	(global.correlationGraph = factory());
 }(this, (function () { 'use strict';
 
+function ticked(link, soloNodesIds, textMainGray, color, communities, nodeG, backgroundNode, node) {
+  link.attr('x1', d => d.source.x).attr('y1', d => d.source.y).attr('x2', d => d.target.x).attr('y2', d => d.target.y).style('stroke', (d, i) => {
+    if (soloNodesIds.indexOf(d.source.id) === -1) {
+      return textMainGray;
+    }
+    return color(communities[d.source.id]);
+  }).style('stroke-opacity', 0.4);
+
+  nodeG.attr('transform', d => `translate(${d.x},${d.y})`);
+
+  backgroundNode.style('fill', 'white').style('fill-opacity', 1);
+
+  node.style('fill', (d, i) => {
+    if (soloNodesIds.indexOf(d.id) === -1) {
+      return textMainGray;
+    }
+    return color(communities[d.id]);
+  }).style('fill-opacity', 0.4).style('stroke', 'white').style('stroke-width', '2px');
+}
+
 /* global d3 _ jLouvain window document */
 /* eslint-disable newline-per-chained-call */
-
 var index = function () {
   const width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
   const height = 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
@@ -63,9 +82,9 @@ var index = function () {
     const nodesAboveThresholdIds = nodesAboveThresholdSet.values().map(d => Number(d));
     const nodesForCommunityDetection = nodesAboveThresholdIds;
 
-    ///
-    /// manage threshold for solo nodes
-    ///
+    // /
+    // / manage threshold for solo nodes
+    // /
     const linksAboveSoloNodeThreshold = [];
     staticLinks.forEach(d => {
       if (d.weight > soloNodeLinkWeightThreshold) {
@@ -78,9 +97,9 @@ var index = function () {
       nodesAboveSoloNodeThresholdSet.add(d.target);
     });
     const soloNodesIds = nodesAboveSoloNodeThresholdSet.values().map(d => Number(d));
-    ///
-    ///
-    ///
+    // /
+    // /
+    // /
 
     console.log('nodes', nodes);
     console.log('nodesAboveThresholdIds', nodesAboveThresholdIds);
@@ -94,11 +113,11 @@ var index = function () {
     // where `degree` is the number of links
     // that a node has
     //
-    nodes.forEach(function (d) {
+    nodes.forEach(d => {
       d.inDegree = 0;
       d.outDegree = 0;
     });
-    links.forEach(function (d) {
+    links.forEach(d => {
       nodes[d.source].outDegree += 1;
       nodes[d.target].inDegree += 1;
     });
@@ -129,9 +148,7 @@ var index = function () {
 
     node.data(nodes).append('title').text(d => d.name);
 
-    const label = nodeG.append('text').text(function (d) {
-      return d.name;
-    }).style('font-size', function (d) {
+    const label = nodeG.append('text').text(d => d.name).style('font-size', function (d) {
       console.log('d from node label', d);
       return `${Math.max(Math.min(2 * nodeRadiusScale(d.inDegree), (2 * nodeRadiusScale(d.inDegree) - 8) / this.getComputedTextLength() * labelTextScalingFactor), 8)}px`;
     }).style('fill', '#666').attr('class', 'label').attr('dx', function (d) {
@@ -142,31 +159,11 @@ var index = function () {
 
     const toolTip = svg.append('g').attr('class', 'toolTips').selectAll('text').data(nodes).enter().append('title').attr('class', 'label').style('fill', '#666').style('font-size', 20).text(d => d.name);
 
-    simulation.nodes(nodes).on('tick', ticked);
+    const boundTicked = ticked.bind(this, link, soloNodesIds, textMainGray, color, communities, nodeG, backgroundNode, node);
+
+    simulation.nodes(nodes).on('tick', boundTicked);
 
     simulation.force('link').links(links);
-
-    function ticked() {
-      link.attr('x1', d => d.source.x).attr('y1', d => d.source.y).attr('x2', d => d.target.x).attr('y2', d => d.target.y).style('stroke', (d, i) => {
-        if (soloNodesIds.indexOf(d.source.id) === -1) {
-          return textMainGray;
-        }
-        return color(communities[d.source.id]);
-      }).style('stroke-opacity', 0.4);
-
-      nodeG.attr('transform', function (d) {
-        return 'translate(' + d.x + ',' + d.y + ')';
-      });
-
-      backgroundNode.style('fill', 'white').style('fill-opacity', 1);
-
-      node.style('fill', (d, i) => {
-        if (soloNodesIds.indexOf(d.id) === -1) {
-          return textMainGray;
-        }
-        return color(communities[d.id]);
-      }).style('fill-opacity', 0.4).style('stroke', 'white').style('stroke-width', '2px');
-    }
   }
 
   function dragstarted() {
