@@ -25,55 +25,6 @@ export default function () {
     .domain([0, 1])
     .range([0, 5]);
 
-  const networkGraphColors = [
-    '#254E00',
-    '#144847',
-    '#137B80',
-    '#193556',
-    '#5F7186',
-    '#842854',
-    '#6D191B',
-    '#8C3B00',
-    '#BA5F06',
-    '#B08B12',
-    '#5C8100',
-    '#6BBBA1',
-    '#0F8C79',
-    '#42A5B3',
-    '#6B99A1',
-    '#8E6C8A',
-    '#D15A86',
-    '#BD2D28',
-    '#E58429',
-    '#E3BA22',
-    '#A0B700',
-    '#C8D7A1',
-    '#7ABFCC',
-    '#33B6D0',
-    '#B0CBDB',
-    '#B396AD',
-    '#DCBDCF',
-    '#E25A42',
-    '#F6B656',
-    '#F2DA57',
-  ];
-
-  // http://colorbrewer2.org/?type=qualitative&scheme=Set3&n=12
-  const qualitativePastels12 = [
-    '#8dd3c7',
-    '#ffffb3',
-    '#bebada',
-    '#fb8072',
-    '#80b1d3',
-    '#fdb462',
-    '#b3de69',
-    '#fccde5',
-    '#d9d9d9',
-    '#bc80bd',
-    '#ccebc5',
-    '#ffed6f',
-  ];
-
   // http://colorbrewer2.org/?type=qualitative&scheme=Paired&n=12
   const boldAlternating12 = [
     '#1f78b4',
