@@ -3,6 +3,7 @@
 import ticked from './src/ticked';
 import dragstarted from './src/dragstarted';
 import dragged from './src/dragged';
+import dragended from './src/dragended';
 
 export default function () {
   const width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
@@ -145,6 +146,7 @@ export default function () {
       .attr('class', 'nodes');
 
     const boundDragstarted = dragstarted.bind(this, simulation);
+    const boundDragended = dragended.bind(this, simulation);
 
     const nodeG = nodesParentG
       .selectAll('g')
@@ -153,7 +155,7 @@ export default function () {
         .call(d3.drag()
           .on('start', boundDragstarted)
           .on('drag', dragged)
-          .on('end', dragended)
+          .on('end', boundDragended)
         );
 
     const nodeRadiusScale = d3.scaleLinear()
@@ -227,11 +229,5 @@ export default function () {
 
     simulation.force('link')
       .links(links);
-  }
-
-  function dragended() {
-    if (!d3.event.active) simulation.alphaTarget(0);
-    d3.event.subject.fx = null;
-    d3.event.subject.fy = null;
   }
 }

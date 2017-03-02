@@ -32,6 +32,21 @@ function dragstarted(simulation) {
   d3.event.subject.fy = d3.event.subject.y;
 }
 
+/* global d3 */
+
+function dragged() {
+  d3.event.subject.fx = d3.event.x;
+  d3.event.subject.fy = d3.event.y;
+}
+
+/* global d3 */
+
+function dragended(simulation) {
+  if (!d3.event.active) simulation.alphaTarget(0);
+  d3.event.subject.fx = null;
+  d3.event.subject.fy = null;
+}
+
 /* global d3 _ jLouvain window document */
 /* eslint-disable newline-per-chained-call */
 var index = function () {
@@ -138,8 +153,9 @@ var index = function () {
     const nodesParentG = svg.append('g').attr('class', 'nodes');
 
     const boundDragstarted = dragstarted.bind(this, simulation);
+    const boundDragended = dragended.bind(this, simulation);
 
-    const nodeG = nodesParentG.selectAll('g').data(nodes).enter().append('g').call(d3.drag().on('start', boundDragstarted).on('drag', dragged).on('end', dragended));
+    const nodeG = nodesParentG.selectAll('g').data(nodes).enter().append('g').call(d3.drag().on('start', boundDragstarted).on('drag', dragged).on('end', boundDragended));
 
     const nodeRadiusScale = d3.scaleLinear().domain([0, nodes.length]).range([5, 30]);
 
@@ -165,17 +181,6 @@ var index = function () {
     simulation.nodes(nodes).on('tick', boundTicked);
 
     simulation.force('link').links(links);
-  }
-
-  function dragged() {
-    d3.event.subject.fx = d3.event.x;
-    d3.event.subject.fy = d3.event.y;
-  }
-
-  function dragended() {
-    if (!d3.event.active) simulation.alphaTarget(0);
-    d3.event.subject.fx = null;
-    d3.event.subject.fy = null;
   }
 };
 
