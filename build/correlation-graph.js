@@ -167,7 +167,6 @@ function render(selector, inputData, options) {
   node.data(nodes).append('title').text(d => d.name);
 
   const label = nodeG.append('text').text(d => d.name).style('font-size', function (d) {
-    console.log('d from node label', d);
     return `${Math.max(Math.min(2 * nodeRadiusScale(d.inDegree), (2 * nodeRadiusScale(d.inDegree) - 8) / this.getComputedTextLength() * labelTextScalingFactor), 8)}px`;
   }).style('fill', '#666').attr('class', 'label').attr('dx', function (d) {
     const dxValue = `${-1 * (this.getComputedTextLength() / 2)}px`;

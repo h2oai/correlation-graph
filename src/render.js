@@ -180,7 +180,6 @@ export default function render(selector, inputData, options) {
   const label = nodeG.append('text')
     .text(d => d.name)
     .style('font-size', function (d) {
-      console.log('d from node label', d);
       return `${
         Math.max(
           Math.min(
