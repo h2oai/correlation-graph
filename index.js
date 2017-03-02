@@ -1,7 +1,7 @@
-  export default function correlationGraph() {
-    /* global d3 window document */
-  /* eslint-disable newline-per-chained-call */
+/* global d3 _ jLouvain window document */
+/* eslint-disable newline-per-chained-call */
 
+export default function() {
   const width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
   const height = 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
   const linkWeightThreshold = 0.79;
@@ -19,7 +19,8 @@
 
   const defaultNodeRadius = '9px';
 
-  const linkWidthScale = d3.scaleLinear()
+  const linkWidthScale = d3.scalePow()
+    .exponent(2)
     .domain([0, 1])
     .range([0, 5]);
 

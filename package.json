@@ -4,8 +4,8 @@
   "description": "a re-usable correlation graph component",
   "main": "index.js",
   "scripts": {
-    "prepublish": "rm -rf build && mkdir build && rollup -c -- src/index.js",
-    "build": "rm -rf build && mkdir build && rollup -c  -- src/index.js",
+    "prepublish": "rm -rf build && mkdir build && rollup -c -- index.js",
+    "build": "rm -rf build && mkdir build && rollup -c  -- index.js && cp build/correlation-graph.js ~/workspace/visualizations/correlation-graph/07/",
     "lint": "eslint index.js src --fix"
   },
   "repository": {
@@ -33,7 +33,7 @@
     "eslint-plugin-jsx-a11y": "^1.5.5",
     "eslint-plugin-react": "^5.2.2",
     "package-preamble": "0.0",
-    "rollup": "^0.33.2",
+    "rollup": "^0.41.4",
     "rollup-plugin-babel": "^2.6.1",
     "rollup-plugin-commonjs": "^5.0.5",
     "rollup-plugin-json": "^2.0.1",

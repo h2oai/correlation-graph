@@ -2,18 +2,22 @@ import json from 'rollup-plugin-json';
 import babel from 'rollup-plugin-babel';
 import nodeResolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
-import strip from 'rollup-plugin-strip';
+// import strip from 'rollup-plugin-strip';
 
 export default {
-  entry: 'src/index.js',
+  entry: 'index.js',
   format: 'umd',
   globals: {},
-  moduleName: 'correlation-graph',
+  moduleName: 'correlationGraph',
+  globals: {
+    d3: 'd3',
+    lodash: '_'
+  },
   plugins: [
     nodeResolve({ jsnext: true, main: true }),
     json(),
     babel(),
-    commonjs(),
+    commonjs()// ,
     // strip({
     //   // set this to `false` if you don't want to
     //   // remove debugger statements
