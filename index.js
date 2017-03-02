@@ -227,7 +227,15 @@ export default function() {
       .text(function(d) { return d.name; })
       .style('font-size', function(d) { 
         console.log('d from node label', d);
-        return `${Math.min(2 * nodeRadiusScale(d.inDegree), (2 * nodeRadiusScale(d.inDegree) - 8) / this.getComputedTextLength() * labelTextScalingFactor)}px`; 
+        return `${
+          Math.max(
+            Math.min(
+              2 * nodeRadiusScale(d.inDegree),
+              (2 * nodeRadiusScale(d.inDegree) - 8) / this.getComputedTextLength() * labelTextScalingFactor
+            ),
+            8
+          )
+        }px`; 
       })
       .style('fill', '#666')
       .attr('class', 'label')

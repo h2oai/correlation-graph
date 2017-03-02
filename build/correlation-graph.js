@@ -133,7 +133,7 @@ var index = function () {
       return d.name;
     }).style('font-size', function (d) {
       console.log('d from node label', d);
-      return `${Math.min(2 * nodeRadiusScale(d.inDegree), (2 * nodeRadiusScale(d.inDegree) - 8) / this.getComputedTextLength() * labelTextScalingFactor)}px`;
+      return `${Math.max(Math.min(2 * nodeRadiusScale(d.inDegree), (2 * nodeRadiusScale(d.inDegree) - 8) / this.getComputedTextLength() * labelTextScalingFactor), 8)}px`;
     }).style('fill', '#666').attr('class', 'label').attr('dx', function (d) {
       const dxValue = `${-1 * (this.getComputedTextLength() / 2)}px`;
       console.log('dxValue', dxValue);
