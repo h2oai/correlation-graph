@@ -51,10 +51,13 @@ function dragended(simulation) {
 /* eslint-disable newline-per-chained-call */
 
 function mouseover() {
+  console.log('arguments from mouseover', arguments);
   const currentNodeId = d3.select(this).attr('id');
   // console.log('currentNodeId', currentNodeId);
 
-  const gSelection = d3.selectAll('g').filter((d, i, nodes) => {
+  const parentG = d3.select(this).node().parentNode;
+  console.log('parentG from mouseover', parentG);
+  const gSelection = d3.select(parentG).selectAll('g').filter((d, i, nodes) => {
     // console.log('this from mouseover filter', this);
     // console.log('nodes[i].id', nodes[i].id);
     // console.log('currentNodeId', currentNodeId);
@@ -73,9 +76,11 @@ function mouseout() {
   const currentNodeId = d3.select(this).attr('id');
   // console.log('currentNodeId', currentNodeId);
 
-  const gSelection = d3.selectAll('g').selectAll('.mark').style('fill-opacity', 0.4);
+  const parentG = d3.select(this).node().parentNode;
+  console.log('parentG from mouseover', parentG);
+  const gSelection = d3.select(parentG).selectAll('g').selectAll('.mark').style('fill-opacity', 0.4);
 
-  d3.selectAll('text').style('opacity', 1);
+  d3.select(parentG).selectAll('text').style('opacity', 1);
 }
 
 /* global d3 _ jLouvain window document */
