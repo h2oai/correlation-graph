@@ -5,6 +5,8 @@ import ticked from './ticked';
 import dragstarted from './dragstarted';
 import dragged from './dragged';
 import dragended from './dragended';
+import mouseover from './mouseover';
+import mouseout from './mouseout';
 
 export default function render(selector, inputData, options) {
   const width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
@@ -80,6 +82,7 @@ export default function render(selector, inputData, options) {
   //
   // manage threshold for solo nodes
   //
+
   const linksAboveSoloNodeThreshold = [];
   staticLinks.forEach(d => {
     if (d.weight > soloNodeLinkWeightThreshold) {
@@ -94,6 +97,7 @@ export default function render(selector, inputData, options) {
   const soloNodesIds = nodesAboveSoloNodeThresholdSet
     .values()
     .map(d => Number(d));
+
   //
   //
   //
@@ -110,6 +114,7 @@ export default function render(selector, inputData, options) {
   // where `degree` is the number of links
   // that a node has
   //
+
   nodes.forEach(d => {
     d.inDegree = 0;
     d.outDegree = 0;
@@ -118,8 +123,9 @@ export default function render(selector, inputData, options) {
     nodes[d.source].outDegree += 1;
     nodes[d.target].inDegree += 1;
   });
+
   //
-  //
+  // detect commnunities
   //
 
   const communityFunction = jLouvain()
@@ -128,6 +134,34 @@ export default function render(selector, inputData, options) {
 
   const communities = communityFunction();
   console.log('communities from jLouvain', communities);
+
+  //
+  // collect in-links for each node
+  //
+
+  console.log('links', links);
+  const inLinksByNodeHash = {};
+  links.forEach(link => {
+    if (typeof inLinksByNodeHash[link.target] === 'undefined') {
+      inLinksByNodeHash[link.target] = [];
+    }
+    inLinksByNodeHash[link.target].push(link);
+  })
+  console.log('inLinksByNodeHash', inLinksByNodeHash); 
+
+  //
+  // collect out-links for each node
+  //
+
+  console.log('links', links);
+  const outLinksByNodeHash = {};
+  links.forEach(link => {
+    if (typeof outLinksByNodeHash[link.source] === 'undefined') {
+      outLinksByNodeHash[link.source] = [];
+    }
+    outLinksByNodeHash[link.source].push(link);
+  })
+  console.log('outLinksByNodeHash', outLinksByNodeHash);
 
   //
   // now we draw elements on the page
@@ -144,6 +178,7 @@ export default function render(selector, inputData, options) {
   const nodesParentG = svg.append('g')
     .attr('class', 'nodes');
 
+  const boundMouseover = mouseover.bind(this);
   const boundDragstarted = dragstarted.bind(this, simulation);
   const boundDragended = dragended.bind(this, simulation);
 
@@ -151,6 +186,9 @@ export default function render(selector, inputData, options) {
     .selectAll('g')
       .data(nodes)
       .enter().append('g')
+      .attr('id', d => `node${d.id}`)
+      .on('mouseover', mouseover)
+      .on('mouseout', mouseout)
       .call(d3.drag()
         .on('start', boundDragstarted)
         .on('drag', dragged)

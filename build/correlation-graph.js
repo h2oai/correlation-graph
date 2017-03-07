@@ -50,6 +50,37 @@ function dragended(simulation) {
 /* global d3 _ jLouvain window document */
 /* eslint-disable newline-per-chained-call */
 
+function mouseover() {
+  const currentNodeId = d3.select(this).attr('id');
+  // console.log('currentNodeId', currentNodeId);
+
+  const gSelection = d3.selectAll('g').filter((d, i, nodes) => {
+    // console.log('this from mouseover filter', this);
+    // console.log('nodes[i].id', nodes[i].id);
+    // console.log('currentNodeId', currentNodeId);
+    return nodes[i].id !== currentNodeId;
+  });
+
+  gSelection.select('.mark').style('fill-opacity', 0.1);
+
+  gSelection.select('text').style('opacity', 0.1);
+}
+
+/* global d3 _ jLouvain window document */
+/* eslint-disable newline-per-chained-call */
+
+function mouseout() {
+  const currentNodeId = d3.select(this).attr('id');
+  // console.log('currentNodeId', currentNodeId);
+
+  const gSelection = d3.selectAll('g').selectAll('.mark').style('fill-opacity', 0.4);
+
+  d3.selectAll('text').style('opacity', 1);
+}
+
+/* global d3 _ jLouvain window document */
+/* eslint-disable newline-per-chained-call */
+
 function render(selector, inputData, options) {
   const width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
   const height = 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
@@ -100,6 +131,7 @@ function render(selector, inputData, options) {
   //
   // manage threshold for solo nodes
   //
+
   const linksAboveSoloNodeThreshold = [];
   staticLinks.forEach(d => {
     if (d.weight > soloNodeLinkWeightThreshold) {
@@ -112,6 +144,7 @@ function render(selector, inputData, options) {
     nodesAboveSoloNodeThresholdSet.add(d.target);
   });
   const soloNodesIds = nodesAboveSoloNodeThresholdSet.values().map(d => Number(d));
+
   //
   //
   //
@@ -128,6 +161,7 @@ function render(selector, inputData, options) {
   // where `degree` is the number of links
   // that a node has
   //
+
   nodes.forEach(d => {
     d.inDegree = 0;
     d.outDegree = 0;
@@ -136,14 +170,43 @@ function render(selector, inputData, options) {
     nodes[d.source].outDegree += 1;
     nodes[d.target].inDegree += 1;
   });
+
   //
-  //
+  // detect commnunities
   //
 
   const communityFunction = jLouvain().nodes(nodesForCommunityDetection).edges(linksForCommunityDetection);
 
   const communities = communityFunction();
   console.log('communities from jLouvain', communities);
+
+  //
+  // collect in-links for each node
+  //
+
+  console.log('links', links);
+  const inLinksByNodeHash = {};
+  links.forEach(link => {
+    if (typeof inLinksByNodeHash[link.target] === 'undefined') {
+      inLinksByNodeHash[link.target] = [];
+    }
+    inLinksByNodeHash[link.target].push(link);
+  });
+  console.log('inLinksByNodeHash', inLinksByNodeHash);
+
+  //
+  // collect out-links for each node
+  //
+
+  console.log('links', links);
+  const outLinksByNodeHash = {};
+  links.forEach(link => {
+    if (typeof outLinksByNodeHash[link.source] === 'undefined') {
+      outLinksByNodeHash[link.source] = [];
+    }
+    outLinksByNodeHash[link.source].push(link);
+  });
+  console.log('outLinksByNodeHash', outLinksByNodeHash);
 
   //
   // now we draw elements on the page
@@ -153,10 +216,11 @@ function render(selector, inputData, options) {
 
   const nodesParentG = svg.append('g').attr('class', 'nodes');
 
+  const boundMouseover = mouseover.bind(this);
   const boundDragstarted = dragstarted.bind(this, simulation);
   const boundDragended = dragended.bind(this, simulation);
 
-  const nodeG = nodesParentG.selectAll('g').data(nodes).enter().append('g').call(d3.drag().on('start', boundDragstarted).on('drag', dragged).on('end', boundDragended));
+  const nodeG = nodesParentG.selectAll('g').data(nodes).enter().append('g').attr('id', d => `node${d.id}`).on('mouseover', mouseover).on('mouseout', mouseout).call(d3.drag().on('start', boundDragstarted).on('drag', dragged).on('end', boundDragended));
 
   const nodeRadiusScale = d3.scaleLinear().domain([0, nodes.length]).range([5, 30]);
 
