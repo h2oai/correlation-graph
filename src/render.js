@@ -5,8 +5,6 @@ import ticked from './ticked';
 import dragstarted from './dragstarted';
 import dragged from './dragged';
 import dragended from './dragended';
-import mouseover from './mouseover';
-import mouseout from './mouseout';
 
 export default function render(selector, inputData, options) {
   const width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
@@ -14,6 +12,62 @@ export default function render(selector, inputData, options) {
   const linkWeightThreshold = 0.79;
   const soloNodeLinkWeightThreshold = 0.1;
   const labelTextScalingFactor = 28;
+
+  const mouseOverFunction = function (d) {
+    const circle = d3.select(this);
+
+    node
+      .transition(500)
+        .style('opacity', o => {
+          const isConnectedValue = isConnected(o, d);
+          if (isConnectedValue) {
+            return 1.0;
+          }
+          return 0.2
+        })
+        .style('fill', (o) => {
+          let fillColor;
+          if (isConnectedAsTarget(o, d) && isConnectedAsSource(o, d)) {
+            fillColor = 'green';
+          } else if (isConnectedAsSource(o, d)) {
+            fillColor = 'red';
+          } else if (isConnectedAsTarget(o, d)) {
+            fillColor = 'blue';
+          } else if (isEqual(o, d)) {
+            fillColor = 'hotpink';
+          } else {
+            fillColor = '#000';
+          }
+          return fillColor;
+        });
+
+    link
+      .transition(500)
+        .style('stroke-opacity', o => (o.source === d || o.target === d ? 1 : 0.2))
+        .transition(500)
+        .attr('marker-end', o => (o.source === d || o.target === d ? 'url(#arrowhead)' : 'url()'));
+
+    // circle
+    //   .transition(500)
+    //     .attr('r', () => {
+    //       console.log('d from mouseover circle radius', d);
+    //       return 1.4 * 4;
+    //     });
+  };
+
+  const mouseOutFunction = function () {
+    const circle = d3.select(this);
+  
+    node
+      .transition(500);
+  
+    link
+      .transition(500);
+  
+    // circle
+    //   .transition(500)
+    //     .attr('r', 4);
+  };
 
   const svg = d3.select(selector).append('svg')
     .attr('width', width)
@@ -153,7 +207,6 @@ export default function render(selector, inputData, options) {
   // collect out-links for each node
   //
 
-  console.log('links', links);
   const outLinksByNodeHash = {};
   links.forEach(link => {
     if (typeof outLinksByNodeHash[link.source] === 'undefined') {
@@ -162,6 +215,29 @@ export default function render(selector, inputData, options) {
     outLinksByNodeHash[link.source].push(link);
   })
   console.log('outLinksByNodeHash', outLinksByNodeHash);
+
+  //
+  // collect neighbors for each node
+  //
+
+  const neighborsByNodeHash = {};
+  nodes.forEach(node => neighborsByNodeHash[node.id] = d3.set());
+
+  nodes.forEach(node => {
+    if (typeof inLinksByNodeHash[node.id] !== 'undefined') {
+      inLinksByNodeHash[node.id].forEach(inLink => {
+        neighborsByNodeHash[node.id].add(inLink.source);
+      })
+    }
+    console.log('outLinksByNodeHash', outLinksByNodeHash)
+    console.log('node.id', node.id);
+    if (typeof outLinksByNodeHash[node.id] !== 'undefined') {
+      outLinksByNodeHash[node.id].forEach(outLink => {
+        neighborsByNodeHash[node.id].add(outLink.target);
+      })
+    }
+  });
+  console.log('neighborsByNodeHash', neighborsByNodeHash);
 
   //
   // now we draw elements on the page
@@ -178,7 +254,7 @@ export default function render(selector, inputData, options) {
   const nodesParentG = svg.append('g')
     .attr('class', 'nodes');
 
-  const boundMouseover = mouseover.bind(this);
+  // const boundMouseover = mouseover.bind(this);
   const boundDragstarted = dragstarted.bind(this, simulation);
   const boundDragended = dragended.bind(this, simulation);
 
@@ -187,8 +263,6 @@ export default function render(selector, inputData, options) {
       .data(nodes)
       .enter().append('g')
       .attr('id', d => `node${d.id}`)
-      .on('mouseover', mouseover)
-      .on('mouseout', mouseout)
       .call(d3.drag()
         .on('start', boundDragstarted)
         .on('drag', dragged)
@@ -207,6 +281,8 @@ export default function render(selector, inputData, options) {
   const node = nodeG
     .append('circle')
       .attr('r', d => `${nodeRadiusScale(d.inDegree)}px`)
+      .on('mouseover', mouseOverFunction)
+      .on('mouseout', mouseOutFunction)
       .classed('mark', true);
 
   node
@@ -264,4 +340,76 @@ export default function render(selector, inputData, options) {
 
   simulation.force('link')
     .links(links);
+
+  let linkedByIndex = {};
+  links.forEach((d) => {
+    linkedByIndex[`${d.source.index},${d.target.index}`] = true;
+  });
+
+  function isConnected(a, b) {
+    return isConnectedAsTarget(a, b) || isConnectedAsSource(a, b) || a.index === b.index;
+  }
+  
+  function isConnectedAsSource(a, b) {
+    return linkedByIndex[`${a.index},${b.index}`];
+  }
+  
+  function isConnectedAsTarget(a, b) {
+    return linkedByIndex[`${b.index},${a.index}`];
+  }
+  
+  function isEqual(a, b) {
+    return a.index === b.index;
+  }
+/*
+  function mouseover() {
+    console.log('arguments from mouseover', arguments);
+    const selectedNodeId = d3.select(this).attr('id');
+    console.log('selectedNodeId', selectedNodeId);
+
+    const parentG = d3.select(this).node().parentNode;
+    const gSelection = d3.select(parentG).selectAll('g')
+      .filter((d, i, nodes) => {
+        // console.log('nodes[i] from mouseover', nodes[i]);
+        const isSelectedNode = nodes[i].id !== selectedNodeId;
+
+        let isNeighbor = false;
+        if (!isSelectedNode) {
+          const currentNodeIndex = Number(nodes[i].id.split('node')[1]);
+          const selectedNodeIndex = Number(selectedNodeId.split('node')[1]);
+          console.log('currentNodeIndex', currentNodeIndex);
+          console.log('selectedNodeIndex', selectedNodeIndex);
+
+          const selectedNeighbors = neighborsByNodeHash[selectedNodeIndex].values();
+          isNeighbor = selectedNeighbors.indexOf(currentNodeIndex) > -1;
+        }
+        const returnValue = isSelectedNode || !isNeighbor;
+        console.log('returnValue', returnValue);
+        return returnValue;
+      });
+
+    // fade out faraway nodes
+    gSelection
+      .select('.mark')
+      .style('fill-opacity', 0.1);
+
+    // fade out labels of faraway nodes
+    gSelection
+      .select('text')
+      .style('opacity', 0.1);
+  }
+
+  function mouseout() {
+    const currentNodeId = d3.select(this).attr('id');
+    // console.log('currentNodeId', currentNodeId);
+
+    const parentG = d3.select(this).node().parentNode;
+    const gSelection = d3.select(parentG).selectAll('g')
+      .selectAll('.mark')
+      .style('fill-opacity', 0.4);
+
+    d3.select(parentG).selectAll('text')
+      .style('opacity', 1);
+  }
+*/
 }
