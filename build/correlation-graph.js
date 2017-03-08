@@ -60,6 +60,8 @@ function render(selector, inputData, options) {
 
   const svg = d3.select(selector).append('svg').attr('width', width).attr('height', height);
 
+  const backgroundRect = svg.append('rect').attr('width', width).attr('height', height).classed('background', true).style('fill', 'white');
+
   const simulation = d3.forceSimulation().force('link', d3.forceLink().id(d => d.id)).force('charge', d3.forceManyBody().strength(-1000)).force('center', d3.forceCenter(width / 2, height / 2));
 
   const defaultNodeRadius = '9px';
@@ -157,11 +159,9 @@ function render(selector, inputData, options) {
   const link = svg.append('g').style('stroke', '#aaa').selectAll('line').data(links).enter().append('line').style('stroke-width', d => linkWidthScale(d.weight)).style('stroke-opacity', 0.4);
 
   link.attr('class', 'link').attr('marker-end', 'url(#end-arrow)');
-  // .on('mouseout', fade(0.4));
 
   const nodesParentG = svg.append('g').attr('class', 'nodes');
 
-  // const boundMouseover = mouseover.bind(this);
   const boundDragstarted = dragstarted.bind(this, simulation);
   const boundDragended = dragended.bind(this, simulation);
 
@@ -173,7 +173,9 @@ function render(selector, inputData, options) {
 
   const backgroundNode = node.append('circle').attr('r', d => `${nodeRadiusScale(d.inDegree)}px`).classed('background', true);
 
-  const nodeCircle = node.append('circle').attr('r', d => `${nodeRadiusScale(d.inDegree)}px`).on('mouseover', fade(0.1)).on('mouseout', fade(0.4)).classed('mark', true);
+  const nodeCircle = node.append('circle').attr('r', d => `${nodeRadiusScale(d.inDegree)}px`).on('mouseover', fade(0.1))
+  // .on('mouseout', fade(0.4))
+  .classed('mark', true);
 
   // draw labels
   const label = node.append('text').text(d => d.name).style('font-size', function (d) {
@@ -195,6 +197,10 @@ function render(selector, inputData, options) {
     linkedByIndex[`${d.source},${d.target}`] = true;
   });
   console.log('linkedByIndex', linkedByIndex);
+
+  // click on the background to reset the fade
+  // to show all nodes
+  backgroundRect.on('click', resetFade());
 
   function isConnected(a, b) {
     return isConnectedAsTarget(a, b) || isConnectedAsSource(a, b) || a.index === b.index;
@@ -245,6 +251,7 @@ function render(selector, inputData, options) {
         return 1;
       });
 
+      // style the link lines
       const defaultLinkOpacity = 0.4;
       link.style('stroke-opacity', o => {
         // console.log('o from fade link style', o);
@@ -260,6 +267,23 @@ function render(selector, inputData, options) {
         }
         return 'url(#end-arrow-fade)';
       });
+    };
+  }
+
+  function resetFade() {
+    return () => {
+      console.log('resetFade function was called');
+      // reset marks
+      const defaultMarkOpacity = 0.4;
+      d3.select(selector).selectAll('.mark').style('fill-opacity', defaultMarkOpacity);
+
+      // reset labels
+      const defaultLabelOpacity = 1;
+      d3.select(selector).selectAll('.label').style('fill-opacity', defaultLabelOpacity);
+
+      // reset links
+      const defaultLinkOpacity = 0.4;
+      d3.select(selector).selectAll('.link').style('stroke-opacity', defaultLinkOpacity);
     };
   }
 }
