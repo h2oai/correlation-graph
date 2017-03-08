@@ -305,6 +305,7 @@ export default function render(selector, inputData, options) {
       }px`;
     })
     .style('fill', '#666')
+    .style('pointer-events', 'none')
     .attr('class', 'label')
     .attr('dx', function (d) {
       const dxValue = `${-1 * (this.getComputedTextLength() / 2)}px`;

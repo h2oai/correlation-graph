@@ -270,7 +270,7 @@ function render(selector, inputData, options) {
 
   const label = nodeG.append('text').text(d => d.name).style('font-size', function (d) {
     return `${Math.max(Math.min(2 * nodeRadiusScale(d.inDegree), (2 * nodeRadiusScale(d.inDegree) - 8) / this.getComputedTextLength() * labelTextScalingFactor), 8)}px`;
-  }).style('fill', '#666').attr('class', 'label').attr('dx', function (d) {
+  }).style('fill', '#666').style('pointer-events', 'none').attr('class', 'label').attr('dx', function (d) {
     const dxValue = `${-1 * (this.getComputedTextLength() / 2)}px`;
     return dxValue;
   }).attr('dy', '.35em');
@@ -303,57 +303,6 @@ function render(selector, inputData, options) {
   function isEqual(a, b) {
     return a.index === b.index;
   }
-  /*
-    function mouseover() {
-      console.log('arguments from mouseover', arguments);
-      const selectedNodeId = d3.select(this).attr('id');
-      console.log('selectedNodeId', selectedNodeId);
-  
-      const parentG = d3.select(this).node().parentNode;
-      const gSelection = d3.select(parentG).selectAll('g')
-        .filter((d, i, nodes) => {
-          // console.log('nodes[i] from mouseover', nodes[i]);
-          const isSelectedNode = nodes[i].id !== selectedNodeId;
-  
-          let isNeighbor = false;
-          if (!isSelectedNode) {
-            const currentNodeIndex = Number(nodes[i].id.split('node')[1]);
-            const selectedNodeIndex = Number(selectedNodeId.split('node')[1]);
-            console.log('currentNodeIndex', currentNodeIndex);
-            console.log('selectedNodeIndex', selectedNodeIndex);
-  
-            const selectedNeighbors = neighborsByNodeHash[selectedNodeIndex].values();
-            isNeighbor = selectedNeighbors.indexOf(currentNodeIndex) > -1;
-          }
-          const returnValue = isSelectedNode || !isNeighbor;
-          console.log('returnValue', returnValue);
-          return returnValue;
-        });
-  
-      // fade out faraway nodes
-      gSelection
-        .select('.mark')
-        .style('fill-opacity', 0.1);
-  
-      // fade out labels of faraway nodes
-      gSelection
-        .select('text')
-        .style('opacity', 0.1);
-    }
-  
-    function mouseout() {
-      const currentNodeId = d3.select(this).attr('id');
-      // console.log('currentNodeId', currentNodeId);
-  
-      const parentG = d3.select(this).node().parentNode;
-      const gSelection = d3.select(parentG).selectAll('g')
-        .selectAll('.mark')
-        .style('fill-opacity', 0.4);
-  
-      d3.select(parentG).selectAll('text')
-        .style('opacity', 1);
-    }
-  */
 }
 
 /* global d3 _ jLouvain window document */
