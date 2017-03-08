@@ -12,63 +12,6 @@ export default function render(selector, inputData, options) {
   const linkWeightThreshold = 0.79;
   const soloNodeLinkWeightThreshold = 0.1;
   const labelTextScalingFactor = 28;
-/*
-  const mouseOverFunction = function (d) {
-    const circle = d3.select(this);
-
-    node
-      .transition(500)
-        // .style('opacity', o => {
-        //   const isConnectedValue = isConnected(o, d);
-        //   if (isConnectedValue) {
-        //     return 1.0;
-        //   }
-        //   return 0.2
-        // })
-        .style('fill-opacity', (o) => {
-          let opacity;
-          if (isConnectedAsTarget(o, d) && isConnectedAsSource(o, d)) {
-            opacity = 0.7;
-          } else if (isConnectedAsSource(o, d)) {
-            opacity = 0.7;
-          } else if (isConnectedAsTarget(o, d)) {
-            opacity = 0.7;
-          } else if (isEqual(o, d)) {
-            opacity = 0.7;
-          } else {
-            opacity = 0.2;
-          }
-          return opacity;
-        });
-
-    link
-      .transition(500)
-        .style('stroke-opacity', o => (o.source === d || o.target === d ? 0.9 : 0.2))
-        .transition(500)
-        .attr('marker-end', o => (o.source === d || o.target === d ? 'url(#arrowhead)' : 'url()'));
-
-    // circle
-    //   .transition(500)
-    //     .attr('r', () => {
-    //       console.log('d from mouseover circle radius', d);
-    //       return 1.4 * 4;
-    //     });
-  };
-
-  const mouseOutFunction = function () {
-    const circle = d3.select(this);
-
-    node
-      .transition(500);
-
-    link
-      .transition(500);
-
-    // circle
-    //   .transition(500)
-    //     .attr('r', 4);
-  };
-*/
 
   const svg = d3.select(selector).append('svg')
     .attr('width', width)
@@ -243,11 +186,6 @@ export default function render(selector, inputData, options) {
       .on('mouseout', fade(0.4))
       .classed('mark', true);
 
-  // draw SVG title tooltip
-  // node
-  //   .append('title')
-  //     .text(d => d.name);
-
   // draw labels
   const label = node.append('text')
     .text(d => d.name)
@@ -272,16 +210,6 @@ export default function render(selector, inputData, options) {
       return dxValue;
     })
     .attr('dy', '.35em');
-
-  // const toolTip = svg.append('g')
-  //   .attr('class', 'toolTips')
-  //   .selectAll('text')
-  //   .data(nodes)
-  //   .enter().append('title')
-  //     .attr('class', 'label')
-  //     .style('fill', '#666')
-  //     .style('font-size', 20)
-  //     .text(d => d.name);
 
   const boundTicked = ticked.bind(
     this,
