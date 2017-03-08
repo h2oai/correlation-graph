@@ -12,7 +12,7 @@ export default function render(selector, inputData, options) {
   const linkWeightThreshold = 0.79;
   const soloNodeLinkWeightThreshold = 0.1;
   const labelTextScalingFactor = 28;
-
+/*
   const mouseOverFunction = function (d) {
     const circle = d3.select(this);
 
@@ -57,17 +57,18 @@ export default function render(selector, inputData, options) {
 
   const mouseOutFunction = function () {
     const circle = d3.select(this);
-  
+
     node
       .transition(500);
-  
+
     link
       .transition(500);
-  
+
     // circle
     //   .transition(500)
     //     .attr('r', 4);
   };
+*/
 
   const svg = d3.select(selector).append('svg')
     .attr('width', width)
@@ -200,6 +201,10 @@ export default function render(selector, inputData, options) {
       .enter().append('line')
       .style('stroke-width', d => linkWidthScale(d.weight));
 
+  link
+    .attr('class', 'link')
+    .attr('marker-end', 'url(#end-arrow)')
+    .on('mouseout', fade(0.4));
 
   const nodesParentG = svg.append('g')
     .attr('class', 'nodes');
@@ -208,40 +213,42 @@ export default function render(selector, inputData, options) {
   const boundDragstarted = dragstarted.bind(this, simulation);
   const boundDragended = dragended.bind(this, simulation);
 
-  const nodeG = nodesParentG
-    .selectAll('g')
+  const node = nodesParentG.selectAll('.node')
       .data(nodes)
       .enter().append('g')
-      .attr('id', d => `node${d.id}`)
-      .call(d3.drag()
-        .on('start', boundDragstarted)
-        .on('drag', dragged)
-        .on('end', boundDragended)
-      );
+      .classed('node', true);
+
+  node
+    .attr('id', d => `node${d.id}`)
+    .call(d3.drag()
+      .on('start', boundDragstarted)
+      .on('drag', dragged)
+      .on('end', boundDragended)
+    );
 
   const nodeRadiusScale = d3.scaleLinear()
     .domain([0, nodes.length])
     .range([5, 30]);
 
-  const backgroundNode = nodeG
+  const backgroundNode = node
     .append('circle')
       .attr('r', d => `${nodeRadiusScale(d.inDegree)}px`)
       .classed('background', true);
 
-  const node = nodeG
+  const nodeCircle = node
     .append('circle')
       .attr('r', d => `${nodeRadiusScale(d.inDegree)}px`)
-      .on('mouseover', mouseOverFunction)
-      .on('mouseout', mouseOutFunction)
+      .on('mouseover', fade(0.1))
+      .on('mouseout', fade(0.4))
       .classed('mark', true);
 
-  node
-    .data(nodes)
-    .append('title')
-      .text(d => d.name);
+  // draw SVG title tooltip
+  // node
+  //   .append('title')
+  //     .text(d => d.name);
 
-
-  const label = nodeG.append('text')
+  // draw labels
+  const label = node.append('text')
     .text(d => d.name)
     .style('font-size', function (d) {
       return `${
@@ -255,7 +262,9 @@ export default function render(selector, inputData, options) {
       }px`;
     })
     .style('fill', '#666')
+    .style('fill-opacity', 1)
     .style('pointer-events', 'none')
+    .style('stroke', 'none')
     .attr('class', 'label')
     .attr('dx', function (d) {
       const dxValue = `${-1 * (this.getComputedTextLength() / 2)}px`;
@@ -263,15 +272,15 @@ export default function render(selector, inputData, options) {
     })
     .attr('dy', '.35em');
 
-  const toolTip = svg.append('g')
-    .attr('class', 'toolTips')
-    .selectAll('text')
-    .data(nodes)
-    .enter().append('title')
-      .attr('class', 'label')
-      .style('fill', '#666')
-      .style('font-size', 20)
-      .text(d => d.name);
+  // const toolTip = svg.append('g')
+  //   .attr('class', 'toolTips')
+  //   .selectAll('text')
+  //   .data(nodes)
+  //   .enter().append('title')
+  //     .attr('class', 'label')
+  //     .style('fill', '#666')
+  //     .style('font-size', 20)
+  //     .text(d => d.name);
 
   const boundTicked = ticked.bind(
     this,
@@ -280,7 +289,7 @@ export default function render(selector, inputData, options) {
     textMainGray,
     color,
     communities,
-    nodeG,
+    node,
     backgroundNode,
     node
   );
@@ -292,24 +301,56 @@ export default function render(selector, inputData, options) {
   simulation.force('link')
     .links(links);
 
-  let linkedByIndex = {};
-  linksForCommunityDetection.forEach((d) => {
-    linkedByIndex[`${d.source.index},${d.target.index}`] = true;
+  const linkedByIndex = {};
+  linksAboveSoloNodeThreshold.forEach((d) => {
+    console.log('d from linkedByIndex creation', d);
+    linkedByIndex[`${d.source},${d.target}`] = true;
   });
+  console.log('linkedByIndex', linkedByIndex);
 
   function isConnected(a, b) {
     return isConnectedAsTarget(a, b) || isConnectedAsSource(a, b) || a.index === b.index;
   }
-  
+
   function isConnectedAsSource(a, b) {
     return linkedByIndex[`${a.index},${b.index}`];
   }
-  
+
   function isConnectedAsTarget(a, b) {
     return linkedByIndex[`${b.index},${a.index}`];
   }
-  
+
   function isEqual(a, b) {
     return a.index === b.index;
+  }
+
+  function fade(opacity) {
+    return d => {
+      const defaultOpacity = 0.4;
+      node.style('stroke-opacity', function (o) {
+        // console.log('o from fade node.style', o);
+        // console.log('isConnected(d, o)', isConnected(d, o));
+        const thisOpacity = isConnected(d, o) ? defaultOpacity : opacity;
+        // console.log('thisOpacity from fade node.style', thisOpacity);
+        // console.log('this from fade node.style', this);
+
+        // style the mark circle
+        console.log('this.id', this.id);
+        this.setAttribute('fill-opacity', thisOpacity);
+        d3.select(`#${this.id}`).selectAll('.mark')
+          .style('fill-opacity', function (p) {
+            console.log('p from fade', p);
+            console.log('isConnected(d, p)', isConnected(d, p));
+            const markOpacity = isConnected(d, p) ? defaultOpacity : opacity;
+            console.log('markOpacity', markOpacity);
+            return markOpacity;
+          });
+
+        return thisOpacity;
+      });
+
+      link.style('stroke-opacity', o => (o.source === d || o.target === d ? defaultOpacity : opacity));
+      link.attr('marker-end', o => (opacity === defaultOpacity || o.source === d || o.target === d ? 'url(#end-arrow)' : 'url(#end-arrow-fade)'));
+    };
   }
 }
