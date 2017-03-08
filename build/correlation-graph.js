@@ -60,29 +60,31 @@ function render(selector, inputData, options) {
   const mouseOverFunction = function (d) {
     const circle = d3.select(this);
 
-    node.transition(500).style('opacity', o => {
-      const isConnectedValue = isConnected(o, d);
-      if (isConnectedValue) {
-        return 1.0;
-      }
-      return 0.2;
-    }).style('fill', o => {
-      let fillColor;
+    node.transition(500)
+    // .style('opacity', o => {
+    //   const isConnectedValue = isConnected(o, d);
+    //   if (isConnectedValue) {
+    //     return 1.0;
+    //   }
+    //   return 0.2
+    // })
+    .style('fill-opacity', o => {
+      let opacity;
       if (isConnectedAsTarget(o, d) && isConnectedAsSource(o, d)) {
-        fillColor = 'green';
+        opacity = 0.7;
       } else if (isConnectedAsSource(o, d)) {
-        fillColor = 'red';
+        opacity = 0.7;
       } else if (isConnectedAsTarget(o, d)) {
-        fillColor = 'blue';
+        opacity = 0.7;
       } else if (isEqual(o, d)) {
-        fillColor = 'hotpink';
+        opacity = 0.7;
       } else {
-        fillColor = '#000';
+        opacity = 0.2;
       }
-      return fillColor;
+      return opacity;
     });
 
-    link.transition(500).style('stroke-opacity', o => o.source === d || o.target === d ? 1 : 0.2).transition(500).attr('marker-end', o => o.source === d || o.target === d ? 'url(#arrowhead)' : 'url()');
+    link.transition(500).style('stroke-opacity', o => o.source === d || o.target === d ? 0.9 : 0.2).transition(500).attr('marker-end', o => o.source === d || o.target === d ? 'url(#arrowhead)' : 'url()');
 
     // circle
     //   .transition(500)
@@ -197,56 +199,6 @@ function render(selector, inputData, options) {
   console.log('communities from jLouvain', communities);
 
   //
-  // collect in-links for each node
-  //
-
-  console.log('links', links);
-  const inLinksByNodeHash = {};
-  links.forEach(link => {
-    if (typeof inLinksByNodeHash[link.target] === 'undefined') {
-      inLinksByNodeHash[link.target] = [];
-    }
-    inLinksByNodeHash[link.target].push(link);
-  });
-  console.log('inLinksByNodeHash', inLinksByNodeHash);
-
-  //
-  // collect out-links for each node
-  //
-
-  const outLinksByNodeHash = {};
-  links.forEach(link => {
-    if (typeof outLinksByNodeHash[link.source] === 'undefined') {
-      outLinksByNodeHash[link.source] = [];
-    }
-    outLinksByNodeHash[link.source].push(link);
-  });
-  console.log('outLinksByNodeHash', outLinksByNodeHash);
-
-  //
-  // collect neighbors for each node
-  //
-
-  const neighborsByNodeHash = {};
-  nodes.forEach(node => neighborsByNodeHash[node.id] = d3.set());
-
-  nodes.forEach(node => {
-    if (typeof inLinksByNodeHash[node.id] !== 'undefined') {
-      inLinksByNodeHash[node.id].forEach(inLink => {
-        neighborsByNodeHash[node.id].add(inLink.source);
-      });
-    }
-    console.log('outLinksByNodeHash', outLinksByNodeHash);
-    console.log('node.id', node.id);
-    if (typeof outLinksByNodeHash[node.id] !== 'undefined') {
-      outLinksByNodeHash[node.id].forEach(outLink => {
-        neighborsByNodeHash[node.id].add(outLink.target);
-      });
-    }
-  });
-  console.log('neighborsByNodeHash', neighborsByNodeHash);
-
-  //
   // now we draw elements on the page
   //
 
@@ -284,13 +236,9 @@ function render(selector, inputData, options) {
   simulation.force('link').links(links);
 
   let linkedByIndex = {};
-  links.forEach(d => {
+  linksForCommunityDetection.forEach(d => {
     linkedByIndex[`${d.source.index},${d.target.index}`] = true;
   });
-
-  function isConnected(a, b) {
-    return isConnectedAsTarget(a, b) || isConnectedAsSource(a, b) || a.index === b.index;
-  }
 
   function isConnectedAsSource(a, b) {
     return linkedByIndex[`${a.index},${b.index}`];
