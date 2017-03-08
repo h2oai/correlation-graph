@@ -19,7 +19,7 @@ export default function ticked(
       }
       return color(communities[d.source.id]);
     })
-    .style('stroke-opacity', 0.4);
+    // .style('stroke-opacity', 0.4);
 
   nodeG
     .attr('transform', d => `translate(${d.x},${d.y})`);
