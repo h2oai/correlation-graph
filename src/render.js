@@ -199,7 +199,8 @@ export default function render(selector, inputData, options) {
     .selectAll('line')
       .data(links)
       .enter().append('line')
-      .style('stroke-width', d => linkWidthScale(d.weight));
+      .style('stroke-width', d => linkWidthScale(d.weight))
+      .style('stroke-opacity', 0.4);
 
   link
     .attr('class', 'link')

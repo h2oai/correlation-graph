@@ -10,7 +10,8 @@ function ticked(link, soloNodesIds, textMainGray, color, communities, nodeG, bac
       return textMainGray;
     }
     return color(communities[d.source.id]);
-  }).style('stroke-opacity', 0.4);
+  });
+  // .style('stroke-opacity', 0.4);
 
   nodeG.attr('transform', d => `translate(${d.x},${d.y})`);
 
@@ -210,7 +211,7 @@ function render(selector, inputData, options) {
   // now we draw elements on the page
   //
 
-  const link = svg.append('g').style('stroke', '#aaa').selectAll('line').data(links).enter().append('line').style('stroke-width', d => linkWidthScale(d.weight));
+  const link = svg.append('g').style('stroke', '#aaa').selectAll('line').data(links).enter().append('line').style('stroke-width', d => linkWidthScale(d.weight)).style('stroke-opacity', 0.4);
 
   link.attr('class', 'link').attr('marker-end', 'url(#end-arrow)');
   // .on('mouseout', fade(0.4));
