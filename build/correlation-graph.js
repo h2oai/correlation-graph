@@ -62,8 +62,6 @@ function render(selector, inputData, options) {
 
   const backgroundRect = svg.append('rect').attr('width', width).attr('height', height).classed('background', true).style('fill', 'white');
 
-  const simulation = d3.forceSimulation().force('link', d3.forceLink().id(d => d.id)).force('charge', d3.forceManyBody().strength(-1000)).force('center', d3.forceCenter(width / 2, height / 2));
-
   const defaultNodeRadius = '9px';
 
   const linkWidthScale = d3.scalePow().exponent(2).domain([0, 1]).range([0, 5]);
@@ -162,12 +160,7 @@ function render(selector, inputData, options) {
 
   const nodesParentG = svg.append('g').attr('class', 'nodes');
 
-  const boundDragstarted = dragstarted.bind(this, simulation);
-  const boundDragended = dragended.bind(this, simulation);
-
-  const node = nodesParentG.selectAll('.node').data(nodes).enter().append('g').classed('node', true);
-
-  node.attr('id', d => `node${d.id}`).call(d3.drag().on('start', boundDragstarted).on('drag', dragged).on('end', boundDragended));
+  const node = nodesParentG.selectAll('.node').data(nodes).enter().append('g').classed('node', true).attr('id', d => `node${d.id}`);
 
   const nodeRadiusScale = d3.scaleLinear().domain([0, nodes.length]).range([5, 30]);
 
@@ -185,12 +178,6 @@ function render(selector, inputData, options) {
     return dxValue;
   }).attr('dy', '.35em');
 
-  const boundTicked = ticked.bind(this, link, soloNodesIds, textMainGray, color, communities, node, backgroundNode, node);
-
-  simulation.nodes(nodes).on('tick', boundTicked);
-
-  simulation.force('link').links(links);
-
   const linkedByIndex = {};
   linksAboveSoloNodeThreshold.forEach(d => {
     // console.log('d from linkedByIndex creation', d);
@@ -202,6 +189,20 @@ function render(selector, inputData, options) {
   // to show all nodes
   backgroundRect.on('click', resetFade());
 
+  const simulation = d3.forceSimulation().force('link', d3.forceLink().id(d => d.id)).force('charge', d3.forceManyBody().strength(-1200)).force('center', d3.forceCenter(width / 2, height / 2));
+
+  const boundTicked = ticked.bind(this, link, soloNodesIds, textMainGray, color, communities, node, backgroundNode, node);
+
+  simulation.nodes(nodes).on('tick', boundTicked);
+
+  simulation.force('link').links(links);
+
+  const boundDragstarted = dragstarted.bind(this, simulation);
+  const boundDragended = dragended.bind(this, simulation);
+
+  node.call(d3.drag().on('start', boundDragstarted).on('drag', dragged).on('end', boundDragended));
+
+  // implementations of the custom forces for clustering communities
   function isConnected(a, b) {
     return isConnectedAsTarget(a, b) || isConnectedAsSource(a, b) || a.index === b.index;
   }

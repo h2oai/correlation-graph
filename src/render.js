@@ -23,11 +23,6 @@ export default function render(selector, inputData, options) {
     .classed('background', true)
     .style('fill', 'white');
 
-  const simulation = d3.forceSimulation()
-    .force('link', d3.forceLink().id(d => d.id))
-    .force('charge', d3.forceManyBody().strength(-1000))
-    .force('center', d3.forceCenter(width / 2, height / 2));
-
   const defaultNodeRadius = '9px';
 
   const linkWidthScale = d3.scalePow()
@@ -158,21 +153,11 @@ export default function render(selector, inputData, options) {
   const nodesParentG = svg.append('g')
     .attr('class', 'nodes');
 
-  const boundDragstarted = dragstarted.bind(this, simulation);
-  const boundDragended = dragended.bind(this, simulation);
-
   const node = nodesParentG.selectAll('.node')
-      .data(nodes)
-      .enter().append('g')
-      .classed('node', true);
-
-  node
-    .attr('id', d => `node${d.id}`)
-    .call(d3.drag()
-      .on('start', boundDragstarted)
-      .on('drag', dragged)
-      .on('end', boundDragended)
-    );
+    .data(nodes)
+    .enter().append('g')
+    .classed('node', true)
+    .attr('id', d => `node${d.id}`);
 
   const nodeRadiusScale = d3.scaleLinear()
     .domain([0, nodes.length])
@@ -215,6 +200,23 @@ export default function render(selector, inputData, options) {
     })
     .attr('dy', '.35em');
 
+  const linkedByIndex = {};
+  linksAboveSoloNodeThreshold.forEach((d) => {
+    // console.log('d from linkedByIndex creation', d);
+    linkedByIndex[`${d.source},${d.target}`] = true;
+  });
+  console.log('linkedByIndex', linkedByIndex);
+
+  // click on the background to reset the fade
+  // to show all nodes
+  backgroundRect
+    .on('click', resetFade());
+
+  const simulation = d3.forceSimulation()
+    .force('link', d3.forceLink().id(d => d.id))
+    .force('charge', d3.forceManyBody().strength(-1200))
+    .force('center', d3.forceCenter(width / 2, height / 2));
+
   const boundTicked = ticked.bind(
     this,
     link,
@@ -234,17 +236,65 @@ export default function render(selector, inputData, options) {
   simulation.force('link')
     .links(links);
 
-  const linkedByIndex = {};
-  linksAboveSoloNodeThreshold.forEach((d) => {
-    // console.log('d from linkedByIndex creation', d);
-    linkedByIndex[`${d.source},${d.target}`] = true;
-  });
-  console.log('linkedByIndex', linkedByIndex);
+  const boundDragstarted = dragstarted.bind(this, simulation);
+  const boundDragended = dragended.bind(this, simulation);
 
-  // click on the background to reset the fade
-  // to show all nodes
-  backgroundRect
-    .on('click', resetFade());
+  node
+    .call(d3.drag()
+      .on('start', boundDragstarted)
+      .on('drag', dragged)
+      .on('end', boundDragended)
+    );
+
+  // implementations of the custom forces for clustering communities
+  function clustering(alpha) {
+    nodes.forEach((d) => {
+      const cluster = clusters[d.cluster];
+      if (cluster === d) return;
+      let x = d.x - cluster.x;
+      let y = d.y - cluster.y;
+      let l = Math.sqrt((x * x) + (y * y));
+      const r = d.r + cluster.r;
+      if (l !== r) {
+        l = ((l - r) / l) * alpha;
+        d.x -= x *= l;
+        d.y -= y *= l;
+        cluster.x += x;
+        cluster.y += y;
+      }
+    });
+  }
+
+  function collide(alpha) {
+    const quadtree = d3.quadtree()
+      .x(d => d.x)
+      .y(d => d.y)
+      .addAll(nodes);
+
+    nodes.forEach((d) => {
+      const r = d.r + maxRadius + Math.max(padding, clusterPadding);
+      const nx1 = d.x - r;
+      const nx2 = d.x + r;
+      const ny1 = d.y - r;
+      const ny2 = d.y + r;
+      quadtree.visit((quad, x1, y1, x2, y2) => {
+        if (quad.data && (quad.data !== d)) {
+          let x = d.x - quad.data.x;
+          let y = d.y - quad.data.y;
+          let l = Math.sqrt((x * x) + (y * y));
+          const r = d.r + quad.data.r + (d.cluster === quad.data.cluster ? padding : clusterPadding);
+          if (l < r) {
+            l = ((l - r) / l) * alpha;
+            d.x -= x *= l;
+            d.y -= y *= l;
+            quad.data.x += x;
+            quad.data.y += y;
+          }
+        }
+        return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+      });
+    });
+  }
 
   function isConnected(a, b) {
     return isConnectedAsTarget(a, b) || isConnectedAsSource(a, b) || a.index === b.index;
