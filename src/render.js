@@ -212,11 +212,6 @@ export default function render(selector, inputData, options) {
   backgroundRect
     .on('click', resetFade());
 
-  const simulation = d3.forceSimulation()
-    .force('link', d3.forceLink().id(d => d.id))
-    .force('charge', d3.forceManyBody().strength(-1200))
-    .force('center', d3.forceCenter(width / 2, height / 2));
-
   const boundTicked = ticked.bind(
     this,
     link,
@@ -229,8 +224,11 @@ export default function render(selector, inputData, options) {
     node
   );
 
-  simulation
+  const simulation = d3.forceSimulation()
     .nodes(nodes)
+    .force('link', d3.forceLink().id(d => d.id))
+    .force('charge', d3.forceManyBody().strength(-1200))
+    .force('center', d3.forceCenter(width / 2, height / 2))
     .on('tick', boundTicked);
 
   simulation.force('link')

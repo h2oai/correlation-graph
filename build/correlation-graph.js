@@ -189,11 +189,9 @@ function render(selector, inputData, options) {
   // to show all nodes
   backgroundRect.on('click', resetFade());
 
-  const simulation = d3.forceSimulation().force('link', d3.forceLink().id(d => d.id)).force('charge', d3.forceManyBody().strength(-1200)).force('center', d3.forceCenter(width / 2, height / 2));
-
   const boundTicked = ticked.bind(this, link, soloNodesIds, textMainGray, color, communities, node, backgroundNode, node);
 
-  simulation.nodes(nodes).on('tick', boundTicked);
+  const simulation = d3.forceSimulation().nodes(nodes).force('link', d3.forceLink().id(d => d.id)).force('charge', d3.forceManyBody().strength(-1200)).force('center', d3.forceCenter(width / 2, height / 2)).on('tick', boundTicked);
 
   simulation.force('link').links(links);
 
