@@ -7,11 +7,29 @@ import dragged from './dragged';
 import dragended from './dragended';
 
 export default function render(selector, inputData, options) {
+  //
+  // configuration
+  //
+
   const width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
   const height = 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
   const linkWeightThreshold = 0.79;
   const soloNodeLinkWeightThreshold = 0.1;
   const labelTextScalingFactor = 28;
+
+  // separation between same-color circles
+  const padding = 9; // 1.5
+
+  // separation between different-color circles
+  const clusterPadding = 48; // 6
+
+  const maxRadius = 12;
+
+  const z = d3.scaleOrdinal(d3.schemeCategory20);
+
+  //
+  //
+  //
 
   const svg = d3.select(selector).append('svg')
     .attr('width', width)
@@ -22,11 +40,6 @@ export default function render(selector, inputData, options) {
     .attr('height', height)
     .classed('background', true)
     .style('fill', 'white');
-
-  const simulation = d3.forceSimulation()
-    .force('link', d3.forceLink().id(d => d.id))
-    .force('charge', d3.forceManyBody().strength(-1000))
-    .force('center', d3.forceCenter(width / 2, height / 2));
 
   const defaultNodeRadius = '9px';
 
@@ -62,7 +75,10 @@ export default function render(selector, inputData, options) {
 
   const graph = inputData;
   const nodes = _.cloneDeep(graph.nodes);
-  const links = _.cloneDeep(graph.edges);
+  const links = _.cloneDeep(graph.edges); 
+
+  // total number of nodes
+  const n = nodes.length;
 
   const staticLinks = graph.edges;
   const linksAboveThreshold = [];
@@ -137,7 +153,31 @@ export default function render(selector, inputData, options) {
     .edges(linksForCommunityDetection);
 
   const communities = communityFunction();
-  console.log('communities from jLouvain', communities);
+  console.log('clusters (communities) detected by jLouvain', communities);
+
+  //
+  // add community and radius properties to each node
+  //
+
+  const defaultRadius = 8;
+  nodes.forEach(function (node) {
+    node.r = defaultRadius;
+    node.cluster = communities[node.id]
+  });
+
+  //
+  // collect clusters from nodes
+  //
+
+  const clusters = {};
+  nodes.forEach((node) => {
+    const radius = node.r;
+    const clusterID = node.cluster;
+    if (!clusters[clusterID] || (radius > clusters[clusterID].r)) { 
+      clusters[clusterID] = node;
+    }
+  });
+  console.log('clusters', clusters);
 
   //
   // now we draw elements on the page
@@ -158,21 +198,11 @@ export default function render(selector, inputData, options) {
   const nodesParentG = svg.append('g')
     .attr('class', 'nodes');
 
-  const boundDragstarted = dragstarted.bind(this, simulation);
-  const boundDragended = dragended.bind(this, simulation);
-
   const node = nodesParentG.selectAll('.node')
-      .data(nodes)
-      .enter().append('g')
-      .classed('node', true);
-
-  node
-    .attr('id', d => `node${d.id}`)
-    .call(d3.drag()
-      .on('start', boundDragstarted)
-      .on('drag', dragged)
-      .on('end', boundDragended)
-    );
+    .data(nodes)
+    .enter().append('g')
+    .classed('node', true)
+    .attr('id', d => `node${d.id}`);
 
   const nodeRadiusScale = d3.scaleLinear()
     .domain([0, nodes.length])
@@ -215,6 +245,18 @@ export default function render(selector, inputData, options) {
     })
     .attr('dy', '.35em');
 
+  const linkedByIndex = {};
+  linksAboveSoloNodeThreshold.forEach((d) => {
+    // console.log('d from linkedByIndex creation', d);
+    linkedByIndex[`${d.source},${d.target}`] = true;
+  });
+  console.log('linkedByIndex', linkedByIndex);
+
+  // click on the background to reset the fade
+  // to show all nodes
+  backgroundRect
+    .on('click', resetFade());
+
   const boundTicked = ticked.bind(
     this,
     link,
@@ -227,24 +269,87 @@ export default function render(selector, inputData, options) {
     node
   );
 
-  simulation
+  const simulation = d3.forceSimulation()
     .nodes(nodes)
+    .force('link', d3.forceLink().id(d => d.id))
+    .velocityDecay(0.2)
+    .force('x', d3.forceX().strength(0.0005))
+    .force('y', d3.forceY().strength(0.0005))
+    .force('collide', collide)
+    .force('cluster', clustering)
+    .force('charge', d3.forceManyBody().strength(-1200))
+    .force('center', d3.forceCenter(width / 2, height / 2))
     .on('tick', boundTicked);
 
   simulation.force('link')
     .links(links);
 
-  const linkedByIndex = {};
-  linksAboveSoloNodeThreshold.forEach((d) => {
-    // console.log('d from linkedByIndex creation', d);
-    linkedByIndex[`${d.source},${d.target}`] = true;
-  });
-  console.log('linkedByIndex', linkedByIndex);
+  const boundDragstarted = dragstarted.bind(this, simulation);
+  const boundDragended = dragended.bind(this, simulation);
 
-  // click on the background to reset the fade
-  // to show all nodes
-  backgroundRect
-    .on('click', resetFade());
+  node
+    .call(d3.drag()
+      .on('start', boundDragstarted)
+      .on('drag', dragged)
+      .on('end', boundDragended)
+    );
+
+  //
+  // implement custom forces for clustering communities
+  //
+
+  function clustering(alpha) {
+    nodes.forEach((d) => {
+      const cluster = clusters[d.cluster];
+      if (cluster === d) return;
+      let x = d.x - cluster.x;
+      let y = d.y - cluster.y;
+      let l = Math.sqrt((x * x) + (y * y));
+      const r = d.r + cluster.r;
+      if (l !== r) {
+        l = ((l - r) / l) * alpha;
+        d.x -= x *= l;
+        d.y -= y *= l;
+        cluster.x += x;
+        cluster.y += y;
+      }
+    });
+  }
+
+  function collide(alpha) {
+    const quadtree = d3.quadtree()
+      .x(d => d.x)
+      .y(d => d.y)
+      .addAll(nodes);
+
+    nodes.forEach((d) => {
+      const r = d.r + maxRadius + Math.max(padding, clusterPadding);
+      const nx1 = d.x - r;
+      const nx2 = d.x + r;
+      const ny1 = d.y - r;
+      const ny2 = d.y + r;
+      quadtree.visit((quad, x1, y1, x2, y2) => {
+        if (quad.data && (quad.data !== d)) {
+          let x = d.x - quad.data.x;
+          let y = d.y - quad.data.y;
+          let l = Math.sqrt((x * x) + (y * y));
+          const r = d.r + quad.data.r + (d.cluster === quad.data.cluster ? padding : clusterPadding);
+          if (l < r) {
+            l = ((l - r) / l) * alpha;
+            d.x -= x *= l;
+            d.y -= y *= l;
+            quad.data.x += x;
+            quad.data.y += y;
+          }
+        }
+        return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+      });
+    });
+  }
+
+  //
+  //
+  //
 
   function isConnected(a, b) {
     return isConnectedAsTarget(a, b) || isConnectedAsSource(a, b) || a.index === b.index;
