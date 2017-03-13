@@ -1,4 +1,4 @@
-/* global d3 _ jLouvain window document */
+/* global d3 _ jLouvain makeAnnotations window document */
 /* eslint-disable newline-per-chained-call */
 
 import ticked from './ticked';
@@ -73,7 +73,7 @@ export default function render(selector, inputData, options) {
   // data-driven code starts here
   //
 
-  const graph = inputData;
+  const graph = _.cloneDeep(inputData);
   const nodes = _.cloneDeep(graph.nodes);
   const links = _.cloneDeep(graph.edges); 
 
@@ -266,7 +266,10 @@ export default function render(selector, inputData, options) {
     communities,
     node,
     backgroundNode,
-    node
+    node,
+    graph,
+    clusters,
+    svg
   );
 
   const simulation = d3.forceSimulation()
