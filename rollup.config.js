@@ -1,5 +1,6 @@
 import json from 'rollup-plugin-json';
 import babel from 'rollup-plugin-babel';
+import babelrc from 'babelrc-rollup';
 import nodeResolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 // import strip from 'rollup-plugin-strip';
@@ -16,7 +17,7 @@ export default {
   plugins: [
     nodeResolve({ jsnext: true, main: true }),
     json(),
-    babel(),
+    babel(babelrc()),
     commonjs()// ,
     // strip({
     //   // set this to `false` if you don't want to
