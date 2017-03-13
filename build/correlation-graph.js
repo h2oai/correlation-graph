@@ -5,7 +5,15 @@
 }(this, (function () { 'use strict';
 
 function ticked(link, soloNodesIds, textMainGray, color, communities, nodeG, backgroundNode, node) {
-  link.attr('x1', d => d.source.x).attr('y1', d => d.source.y).attr('x2', d => d.target.x).attr('y2', d => d.target.y).style('stroke', (d, i) => {
+  link.attr('x1', function (d) {
+    return d.source.x;
+  }).attr('y1', function (d) {
+    return d.source.y;
+  }).attr('x2', function (d) {
+    return d.target.x;
+  }).attr('y2', function (d) {
+    return d.target.y;
+  }).style('stroke', function (d, i) {
     if (soloNodesIds.indexOf(d.source.id) === -1) {
       return textMainGray;
     }
@@ -13,11 +21,13 @@ function ticked(link, soloNodesIds, textMainGray, color, communities, nodeG, bac
   });
   // .style('stroke-opacity', 0.4);
 
-  nodeG.attr('transform', d => `translate(${d.x},${d.y})`);
+  nodeG.attr('transform', function (d) {
+    return 'translate(' + d.x + ',' + d.y + ')';
+  });
 
   backgroundNode.style('fill', 'white').style('fill-opacity', 1);
 
-  node.style('fill', (d, i) => {
+  node.style('fill', function (d, i) {
     if (soloNodesIds.indexOf(d.id) === -1) {
       return textMainGray;
     }
@@ -56,85 +66,89 @@ function render(selector, inputData, options) {
   // configuration
   //
 
-  const width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-  const height = 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-  const linkWeightThreshold = 0.79;
-  const soloNodeLinkWeightThreshold = 0.1;
-  const labelTextScalingFactor = 28;
+  var width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+  var height = 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+  var linkWeightThreshold = 0.79;
+  var soloNodeLinkWeightThreshold = 0.1;
+  var labelTextScalingFactor = 28;
 
   // separation between same-color circles
-  const padding = 9; // 1.5
+  var padding = 9; // 1.5
 
   // separation between different-color circles
-  const clusterPadding = 48; // 6
+  var clusterPadding = 48; // 6
 
-  const maxRadius = 12;
+  var maxRadius = 12;
 
-  const z = d3.scaleOrdinal(d3.schemeCategory20);
+  var z = d3.scaleOrdinal(d3.schemeCategory20);
 
   //
   //
   //
 
-  const svg = d3.select(selector).append('svg').attr('width', width).attr('height', height);
+  var svg = d3.select(selector).append('svg').attr('width', width).attr('height', height);
 
-  const backgroundRect = svg.append('rect').attr('width', width).attr('height', height).classed('background', true).style('fill', 'white');
+  var backgroundRect = svg.append('rect').attr('width', width).attr('height', height).classed('background', true).style('fill', 'white');
 
-  const defaultNodeRadius = '9px';
+  var defaultNodeRadius = '9px';
 
-  const linkWidthScale = d3.scalePow().exponent(2).domain([0, 1]).range([0, 5]);
+  var linkWidthScale = d3.scalePow().exponent(2).domain([0, 1]).range([0, 5]);
 
   // http://colorbrewer2.org/?type=qualitative&scheme=Paired&n=12
-  const boldAlternating12 = ['#1f78b4', '#33a02c', '#e31a1c', '#ff7f00', '#6a3d9a', '#b15928', '#a6cee3', '#b2df8a', '#fb9a99', '#fdbf6f', '#cab2d6', '#ffff99'];
+  var boldAlternating12 = ['#1f78b4', '#33a02c', '#e31a1c', '#ff7f00', '#6a3d9a', '#b15928', '#a6cee3', '#b2df8a', '#fb9a99', '#fdbf6f', '#cab2d6', '#ffff99'];
 
-  const textMainGray = '#635F5D';
+  var textMainGray = '#635F5D';
 
-  const color = d3.scaleOrdinal().range(boldAlternating12);
+  var color = d3.scaleOrdinal().range(boldAlternating12);
 
   //
   // data-driven code starts here
   //
 
-  const graph = inputData;
-  const nodes = _.cloneDeep(graph.nodes);
-  const links = _.cloneDeep(graph.edges);
+  var graph = inputData;
+  var nodes = _.cloneDeep(graph.nodes);
+  var links = _.cloneDeep(graph.edges);
 
   // total number of nodes
-  const n = nodes.length;
+  var n = nodes.length;
 
-  const staticLinks = graph.edges;
-  const linksAboveThreshold = [];
-  staticLinks.forEach(d => {
+  var staticLinks = graph.edges;
+  var linksAboveThreshold = [];
+  staticLinks.forEach(function (d) {
     if (d.weight > linkWeightThreshold) {
       linksAboveThreshold.push(d);
     }
   });
-  const linksForCommunityDetection = linksAboveThreshold;
+  var linksForCommunityDetection = linksAboveThreshold;
 
-  const nodesAboveThresholdSet = d3.set();
-  linksAboveThreshold.forEach(d => {
+  var nodesAboveThresholdSet = d3.set();
+  linksAboveThreshold.forEach(function (d) {
     nodesAboveThresholdSet.add(d.source);
     nodesAboveThresholdSet.add(d.target);
   });
-  const nodesAboveThresholdIds = nodesAboveThresholdSet.values().map(d => Number(d));
-  const nodesForCommunityDetection = nodesAboveThresholdIds;
+  var nodesAboveThresholdIds = nodesAboveThresholdSet.values().map(function (d) {
+    return Number(d);
+  });
+  var nodesForCommunityDetection = nodesAboveThresholdIds;
 
   //
   // manage threshold for solo nodes
   //
 
-  const linksAboveSoloNodeThreshold = [];
-  staticLinks.forEach(d => {
+  var linksAboveSoloNodeThreshold = [];
+  staticLinks.forEach(function (d) {
     if (d.weight > soloNodeLinkWeightThreshold) {
       linksAboveSoloNodeThreshold.push(d);
     }
   });
-  const nodesAboveSoloNodeThresholdSet = d3.set();
-  linksAboveSoloNodeThreshold.forEach(d => {
+  var nodesAboveSoloNodeThresholdSet = d3.set();
+  linksAboveSoloNodeThreshold.forEach(function (d) {
     nodesAboveSoloNodeThresholdSet.add(d.source);
     nodesAboveSoloNodeThresholdSet.add(d.target);
   });
-  const soloNodesIds = nodesAboveSoloNodeThresholdSet.values().map(d => Number(d));
+  var soloNodesIds = nodesAboveSoloNodeThresholdSet.values().map(function (d) {
+    return Number(d);
+  });
 
   //
   //
@@ -153,11 +167,11 @@ function render(selector, inputData, options) {
   // that a node has
   //
 
-  nodes.forEach(d => {
+  nodes.forEach(function (d) {
     d.inDegree = 0;
     d.outDegree = 0;
   });
-  links.forEach(d => {
+  links.forEach(function (d) {
     nodes[d.source].outDegree += 1;
     nodes[d.target].inDegree += 1;
   });
@@ -166,16 +180,16 @@ function render(selector, inputData, options) {
   // detect commnunities
   //
 
-  const communityFunction = jLouvain().nodes(nodesForCommunityDetection).edges(linksForCommunityDetection);
+  var communityFunction = jLouvain().nodes(nodesForCommunityDetection).edges(linksForCommunityDetection);
 
-  const communities = communityFunction();
+  var communities = communityFunction();
   console.log('clusters (communities) detected by jLouvain', communities);
 
   //
   // add community and radius properties to each node
   //
 
-  const defaultRadius = 8;
+  var defaultRadius = 8;
   nodes.forEach(function (node) {
     node.r = defaultRadius;
     node.cluster = communities[node.id];
@@ -185,10 +199,10 @@ function render(selector, inputData, options) {
   // collect clusters from nodes
   //
 
-  const clusters = {};
-  nodes.forEach(node => {
-    const radius = node.r;
-    const clusterID = node.cluster;
+  var clusters = {};
+  nodes.forEach(function (node) {
+    var radius = node.r;
+    var clusterID = node.cluster;
     if (!clusters[clusterID] || radius > clusters[clusterID].r) {
       clusters[clusterID] = node;
     }
@@ -199,34 +213,44 @@ function render(selector, inputData, options) {
   // now we draw elements on the page
   //
 
-  const link = svg.append('g').style('stroke', '#aaa').selectAll('line').data(links).enter().append('line').style('stroke-width', d => linkWidthScale(d.weight)).style('stroke-opacity', 0.4);
+  var link = svg.append('g').style('stroke', '#aaa').selectAll('line').data(links).enter().append('line').style('stroke-width', function (d) {
+    return linkWidthScale(d.weight);
+  }).style('stroke-opacity', 0.4);
 
   link.attr('class', 'link').attr('marker-end', 'url(#end-arrow)');
 
-  const nodesParentG = svg.append('g').attr('class', 'nodes');
+  var nodesParentG = svg.append('g').attr('class', 'nodes');
 
-  const node = nodesParentG.selectAll('.node').data(nodes).enter().append('g').classed('node', true).attr('id', d => `node${d.id}`);
+  var node = nodesParentG.selectAll('.node').data(nodes).enter().append('g').classed('node', true).attr('id', function (d) {
+    return 'node' + d.id;
+  });
 
-  const nodeRadiusScale = d3.scaleLinear().domain([0, nodes.length]).range([5, 30]);
+  var nodeRadiusScale = d3.scaleLinear().domain([0, nodes.length]).range([5, 30]);
 
-  const backgroundNode = node.append('circle').attr('r', d => `${nodeRadiusScale(d.inDegree)}px`).classed('background', true);
+  var backgroundNode = node.append('circle').attr('r', function (d) {
+    return nodeRadiusScale(d.inDegree) + 'px';
+  }).classed('background', true);
 
-  const nodeCircle = node.append('circle').attr('r', d => `${nodeRadiusScale(d.inDegree)}px`).on('mouseover', fade(0.1))
+  var nodeCircle = node.append('circle').attr('r', function (d) {
+    return nodeRadiusScale(d.inDegree) + 'px';
+  }).on('mouseover', fade(0.1))
   // .on('mouseout', fade(0.4))
   .classed('mark', true);
 
   // draw labels
-  const label = node.append('text').text(d => d.name).style('font-size', function (d) {
-    return `${Math.max(Math.min(2 * nodeRadiusScale(d.inDegree), (2 * nodeRadiusScale(d.inDegree) - 8) / this.getComputedTextLength() * labelTextScalingFactor), 8)}px`;
+  var label = node.append('text').text(function (d) {
+    return d.name;
+  }).style('font-size', function (d) {
+    return Math.max(Math.min(2 * nodeRadiusScale(d.inDegree), (2 * nodeRadiusScale(d.inDegree) - 8) / this.getComputedTextLength() * labelTextScalingFactor), 8) + 'px';
   }).style('fill', '#666').style('fill-opacity', 1).style('pointer-events', 'none').style('stroke', 'none').attr('class', 'label').attr('dx', function (d) {
-    const dxValue = `${-1 * (this.getComputedTextLength() / 2)}px`;
+    var dxValue = -1 * (this.getComputedTextLength() / 2) + 'px';
     return dxValue;
   }).attr('dy', '.35em');
 
-  const linkedByIndex = {};
-  linksAboveSoloNodeThreshold.forEach(d => {
+  var linkedByIndex = {};
+  linksAboveSoloNodeThreshold.forEach(function (d) {
     // console.log('d from linkedByIndex creation', d);
-    linkedByIndex[`${d.source},${d.target}`] = true;
+    linkedByIndex[d.source + ',' + d.target] = true;
   });
   console.log('linkedByIndex', linkedByIndex);
 
@@ -234,14 +258,16 @@ function render(selector, inputData, options) {
   // to show all nodes
   backgroundRect.on('click', resetFade());
 
-  const boundTicked = ticked.bind(this, link, soloNodesIds, textMainGray, color, communities, node, backgroundNode, node);
+  var boundTicked = ticked.bind(this, link, soloNodesIds, textMainGray, color, communities, node, backgroundNode, node);
 
-  const simulation = d3.forceSimulation().nodes(nodes).force('link', d3.forceLink().id(d => d.id)).velocityDecay(0.2).force('x', d3.forceX().strength(0.0005)).force('y', d3.forceY().strength(0.0005)).force('collide', collide).force('cluster', clustering).force('charge', d3.forceManyBody().strength(-1200)).force('center', d3.forceCenter(width / 2, height / 2)).on('tick', boundTicked);
+  var simulation = d3.forceSimulation().nodes(nodes).force('link', d3.forceLink().id(function (d) {
+    return d.id;
+  })).velocityDecay(0.2).force('x', d3.forceX().strength(0.0005)).force('y', d3.forceY().strength(0.0005)).force('collide', collide).force('cluster', clustering).force('charge', d3.forceManyBody().strength(-1200)).force('center', d3.forceCenter(width / 2, height / 2)).on('tick', boundTicked);
 
   simulation.force('link').links(links);
 
-  const boundDragstarted = dragstarted.bind(this, simulation);
-  const boundDragended = dragended.bind(this, simulation);
+  var boundDragstarted = dragstarted.bind(this, simulation);
+  var boundDragended = dragended.bind(this, simulation);
 
   node.call(d3.drag().on('start', boundDragstarted).on('drag', dragged).on('end', boundDragended));
 
@@ -250,13 +276,13 @@ function render(selector, inputData, options) {
   //
 
   function clustering(alpha) {
-    nodes.forEach(d => {
-      const cluster = clusters[d.cluster];
+    nodes.forEach(function (d) {
+      var cluster = clusters[d.cluster];
       if (cluster === d) return;
-      let x = d.x - cluster.x;
-      let y = d.y - cluster.y;
-      let l = Math.sqrt(x * x + y * y);
-      const r = d.r + cluster.r;
+      var x = d.x - cluster.x;
+      var y = d.y - cluster.y;
+      var l = Math.sqrt(x * x + y * y);
+      var r = d.r + cluster.r;
       if (l !== r) {
         l = (l - r) / l * alpha;
         d.x -= x *= l;
@@ -268,22 +294,26 @@ function render(selector, inputData, options) {
   }
 
   function collide(alpha) {
-    const quadtree = d3.quadtree().x(d => d.x).y(d => d.y).addAll(nodes);
+    var quadtree = d3.quadtree().x(function (d) {
+      return d.x;
+    }).y(function (d) {
+      return d.y;
+    }).addAll(nodes);
 
-    nodes.forEach(d => {
-      const r = d.r + maxRadius + Math.max(padding, clusterPadding);
-      const nx1 = d.x - r;
-      const nx2 = d.x + r;
-      const ny1 = d.y - r;
-      const ny2 = d.y + r;
-      quadtree.visit((quad, x1, y1, x2, y2) => {
+    nodes.forEach(function (d) {
+      var r = d.r + maxRadius + Math.max(padding, clusterPadding);
+      var nx1 = d.x - r;
+      var nx2 = d.x + r;
+      var ny1 = d.y - r;
+      var ny2 = d.y + r;
+      quadtree.visit(function (quad, x1, y1, x2, y2) {
         if (quad.data && quad.data !== d) {
-          let x = d.x - quad.data.x;
-          let y = d.y - quad.data.y;
-          let l = Math.sqrt(x * x + y * y);
-          const r = d.r + quad.data.r + (d.cluster === quad.data.cluster ? padding : clusterPadding);
-          if (l < r) {
-            l = (l - r) / l * alpha;
+          var x = d.x - quad.data.x;
+          var y = d.y - quad.data.y;
+          var l = Math.sqrt(x * x + y * y);
+          var _r = d.r + quad.data.r + (d.cluster === quad.data.cluster ? padding : clusterPadding);
+          if (l < _r) {
+            l = (l - _r) / l * alpha;
             d.x -= x *= l;
             d.y -= y *= l;
             quad.data.x += x;
@@ -304,15 +334,15 @@ function render(selector, inputData, options) {
   }
 
   function isConnectedAsSource(a, b) {
-    return linkedByIndex[`${a.index},${b.index}`];
+    return linkedByIndex[a.index + ',' + b.index];
   }
 
   function isConnectedAsTarget(a, b) {
-    return linkedByIndex[`${b.index},${a.index}`];
+    return linkedByIndex[b.index + ',' + a.index];
   }
 
   function fade(opacity) {
-    return d => {
+    return function (d) {
       node.style('stroke-opacity', function (o) {
         // console.log('o from fade node.style', o);
         // console.log('isConnected(d, o)', isConnected(d, o));
@@ -323,21 +353,21 @@ function render(selector, inputData, options) {
         // style the mark circle
         // console.log('this.id', this.id);
         // this.setAttribute('fill-opacity', thisOpacity);
-        const defaultMarkOpacity = 0.4;
-        d3.select(`#${this.id}`).selectAll('.mark').style('fill-opacity', p => {
+        var defaultMarkOpacity = 0.4;
+        d3.select('#' + this.id).selectAll('.mark').style('fill-opacity', function (p) {
           // console.log('p from fade mark', p);
           // console.log('isConnected(d, p) mark', isConnected(d, p));
-          const markOpacity = isConnected(d, p) ? defaultMarkOpacity : opacity;
+          var markOpacity = isConnected(d, p) ? defaultMarkOpacity : opacity;
           // console.log('markOpacity', markOpacity);
           return markOpacity;
         });
 
         // style the label text
-        const defaultLabelOpacity = 1;
-        d3.select(`#${this.id}`).selectAll('.label').style('fill-opacity', p => {
+        var defaultLabelOpacity = 1;
+        d3.select('#' + this.id).selectAll('.label').style('fill-opacity', function (p) {
           // console.log('p from fade label', p);
           // console.log('isConnected(d, p) label', isConnected(d, p));
-          let labelOpacity = 1;
+          var labelOpacity = 1;
           if (!isConnected(d, p) && opacity !== defaultMarkOpacity) {
             labelOpacity = opacity;
           }
@@ -349,8 +379,8 @@ function render(selector, inputData, options) {
       });
 
       // style the link lines
-      const defaultLinkOpacity = 0.4;
-      link.style('stroke-opacity', o => {
+      var defaultLinkOpacity = 0.4;
+      link.style('stroke-opacity', function (o) {
         // console.log('o from fade link style', o);
         // console.log('d from fade link style', d);
         if (o.source.id === d.id || o.target.id === d.id) {
@@ -358,7 +388,7 @@ function render(selector, inputData, options) {
         }
         return opacity;
       });
-      link.attr('marker-end', o => {
+      link.attr('marker-end', function (o) {
         if (opacity === defaultLinkOpacity || o.source.id === d.id || o.target.id === d.id) {
           return 'url(#end-arrow)';
         }
@@ -368,18 +398,18 @@ function render(selector, inputData, options) {
   }
 
   function resetFade() {
-    return () => {
+    return function () {
       console.log('resetFade function was called');
       // reset marks
-      const defaultMarkOpacity = 0.4;
+      var defaultMarkOpacity = 0.4;
       d3.select(selector).selectAll('.mark').style('fill-opacity', defaultMarkOpacity);
 
       // reset labels
-      const defaultLabelOpacity = 1;
+      var defaultLabelOpacity = 1;
       d3.select(selector).selectAll('.label').style('fill-opacity', defaultLabelOpacity);
 
       // reset links
-      const defaultLinkOpacity = 0.4;
+      var defaultLinkOpacity = 0.4;
       d3.select(selector).selectAll('.link').style('stroke-opacity', defaultLinkOpacity);
     };
   }
