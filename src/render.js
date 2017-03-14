@@ -6,10 +6,14 @@ import dragstarted from './dragstarted';
 import dragged from './dragged';
 import dragended from './dragended';
 
-export default function render(selector, inputData, options) {
+export default function render(props) {
   //
   // configuration
   //
+
+  const selector = props.selector;
+  const inputData = props.data;
+  const options = props.options;
 
   const width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
   const height = 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;

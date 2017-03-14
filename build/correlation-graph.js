@@ -61,10 +61,14 @@ function dragended(simulation) {
 /* global d3 _ jLouvain window document */
 /* eslint-disable newline-per-chained-call */
 
-function render(selector, inputData, options) {
+function render(props) {
   //
   // configuration
   //
+
+  var selector = props.selector;
+  var inputData = props.data;
+  var options = props.options;
 
   var width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
   var height = 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
