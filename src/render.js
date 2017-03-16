@@ -6,10 +6,14 @@ import dragstarted from './dragstarted';
 import dragged from './dragged';
 import dragended from './dragended';
 
-export default function render(selector, inputData, options) {
+export default function render(props) {
   //
   // configuration
   //
+
+  const selector = props.selector;
+  const inputData = props.data;
+  const options = props.options;
 
   const width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
   const height = 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
@@ -27,6 +31,11 @@ export default function render(selector, inputData, options) {
 
   const z = d3.scaleOrdinal(d3.schemeCategory20);
 
+  // determines if nodes and node labels size is fixed 
+  // defaults to `undefined`
+  const fixedNodeSize = options.fixedNodeSize;
+  const defaultNodeRadius = '9px';
+
   //
   //
   //
@@ -40,8 +49,6 @@ export default function render(selector, inputData, options) {
     .attr('height', height)
     .classed('background', true)
     .style('fill', 'white');
-
-  const defaultNodeRadius = '9px';
 
   const linkWidthScale = d3.scalePow()
     .exponent(2)
@@ -62,6 +69,17 @@ export default function render(selector, inputData, options) {
     '#fdbf6f',
     '#cab2d6',
     '#ffff99',
+  ];
+
+  const gephiSoftColors = [
+    '#81e2ff', // light blue
+    '#b9e080', // light green
+    '#ffaac2', // pink
+    '#ffc482', // soft orange
+    '#efc4ff', // soft violet
+    '#a6a39f', // smoke gray
+    '#80deca', // teal
+    '#e9d9d8'  // pink gray
   ];
 
   const textMainGray = '#635F5D';
@@ -159,7 +177,7 @@ export default function render(selector, inputData, options) {
   // add community and radius properties to each node
   //
 
-  const defaultRadius = 8;
+  const defaultRadius = 10;
   nodes.forEach(function (node) {
     node.r = defaultRadius;
     node.cluster = communities[node.id]
@@ -210,12 +228,22 @@ export default function render(selector, inputData, options) {
 
   const backgroundNode = node
     .append('circle')
-      .attr('r', d => `${nodeRadiusScale(d.inDegree)}px`)
+      .attr('r', d => {
+        if (typeof fixedNodeSize !== 'undefined') {
+          return `${defaultRadius}px`
+        }
+        return `${nodeRadiusScale(d.inDegree)}px`
+      })
       .classed('background', true);
 
   const nodeCircle = node
     .append('circle')
-      .attr('r', d => `${nodeRadiusScale(d.inDegree)}px`)
+      .attr('r', d => {
+        if (typeof fixedNodeSize !== 'undefined') {
+          return `${defaultRadius}px`
+        }
+        return `${nodeRadiusScale(d.inDegree)}px`
+      })
       .on('mouseover', fade(0.1))
       // .on('mouseout', fade(0.4))
       .classed('mark', true);
@@ -224,6 +252,9 @@ export default function render(selector, inputData, options) {
   const label = node.append('text')
     .text(d => d.name)
     .style('font-size', function (d) {
+      if (typeof fixedNodeSize !== 'undefined') {
+        return `${defaultRadius * 1}px`;
+      }
       return `${
         Math.max(
           Math.min(

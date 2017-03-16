@@ -153,10 +153,14 @@ function dragended(simulation) {
 /* global d3 _ jLouvain makeAnnotations window document */
 /* eslint-disable newline-per-chained-call */
 
-function render(selector, inputData, options) {
+function render(props) {
   //
   // configuration
   //
+
+  var selector = props.selector;
+  var inputData = props.data;
+  var options = props.options;
 
   var width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
   var height = 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
@@ -174,6 +178,11 @@ function render(selector, inputData, options) {
 
   var z = d3.scaleOrdinal(d3.schemeCategory20);
 
+  // determines if nodes and node labels size is fixed 
+  // defaults to `undefined`
+  var fixedNodeSize = options.fixedNodeSize;
+  var defaultNodeRadius = '9px';
+
   //
   //
   //
@@ -182,12 +191,20 @@ function render(selector, inputData, options) {
 
   var backgroundRect = svg.append('rect').attr('width', width).attr('height', height).classed('background', true).style('fill', 'white');
 
-  var defaultNodeRadius = '9px';
-
   var linkWidthScale = d3.scalePow().exponent(2).domain([0, 1]).range([0, 5]);
 
   // http://colorbrewer2.org/?type=qualitative&scheme=Paired&n=12
   var boldAlternating12 = ['#1f78b4', '#33a02c', '#e31a1c', '#ff7f00', '#6a3d9a', '#b15928', '#a6cee3', '#b2df8a', '#fb9a99', '#fdbf6f', '#cab2d6', '#ffff99'];
+
+  var gephiSoftColors = ['#81e2ff', // light blue
+  '#b9e080', // light green
+  '#ffaac2', // pink
+  '#ffc482', // soft orange
+  '#efc4ff', // soft violet
+  '#a6a39f', // smoke gray
+  '#80deca', // teal
+  '#e9d9d8' // pink gray
+  ];
 
   var textMainGray = '#635F5D';
 
@@ -281,7 +298,7 @@ function render(selector, inputData, options) {
   // add community and radius properties to each node
   //
 
-  var defaultRadius = 8;
+  var defaultRadius = 10;
   nodes.forEach(function (node) {
     node.r = defaultRadius;
     node.cluster = communities[node.id];
@@ -320,10 +337,16 @@ function render(selector, inputData, options) {
   var nodeRadiusScale = d3.scaleLinear().domain([0, nodes.length]).range([5, 30]);
 
   var backgroundNode = node.append('circle').attr('r', function (d) {
+    if (typeof fixedNodeSize !== 'undefined') {
+      return defaultRadius + 'px';
+    }
     return nodeRadiusScale(d.inDegree) + 'px';
   }).classed('background', true);
 
   var nodeCircle = node.append('circle').attr('r', function (d) {
+    if (typeof fixedNodeSize !== 'undefined') {
+      return defaultRadius + 'px';
+    }
     return nodeRadiusScale(d.inDegree) + 'px';
   }).on('mouseover', fade(0.1))
   // .on('mouseout', fade(0.4))
@@ -333,6 +356,9 @@ function render(selector, inputData, options) {
   var label = node.append('text').text(function (d) {
     return d.name;
   }).style('font-size', function (d) {
+    if (typeof fixedNodeSize !== 'undefined') {
+      return defaultRadius * 1 + 'px';
+    }
     return Math.max(Math.min(2 * nodeRadiusScale(d.inDegree), (2 * nodeRadiusScale(d.inDegree) - 8) / this.getComputedTextLength() * labelTextScalingFactor), 8) + 'px';
   }).style('fill', '#666').style('fill-opacity', 1).style('pointer-events', 'none').style('stroke', 'none').attr('class', 'label').attr('dx', function (d) {
     var dxValue = -1 * (this.getComputedTextLength() / 2) + 'px';
