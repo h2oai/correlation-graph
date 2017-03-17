@@ -5,6 +5,7 @@ import ticked from './ticked';
 import dragstarted from './dragstarted';
 import dragged from './dragged';
 import dragended from './dragended';
+import annotation from 'd3-svg-annotation';
 
 export default function render(props) {
   //
