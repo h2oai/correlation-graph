@@ -70,8 +70,15 @@ function render(props) {
   var inputData = props.data;
   var options = props.options;
 
-  var width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-  var height = 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+  // const parent = d3.select(selector).nodes()[0];
+  var parent = document.getElementById('graph');
+  console.log('parent', parent);
+
+  var width = parent.innerWidth || parent.clientWidth || 600; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+  var height = parent.innerHeight || parent.clientHeight || 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+  console.log('width', width);
+  console.log('height', height);
+
   var linkWeightThreshold = 0.79;
   var soloNodeLinkWeightThreshold = 0.1;
   var labelTextScalingFactor = 28;
