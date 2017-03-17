@@ -72,10 +72,14 @@ function render(props) {
 
   // const parent = d3.select(selector).nodes()[0];
   var parent = document.getElementById('graph');
+  var parentWidth = parent.innerWidth || parent.clientWidth || 600;
+  var parentHeight = parent.innerHeight || parent.clientHeight || 600;
   console.log('parent', parent);
+  console.log('parentWidth', parentWidth);
+  console.log('parentHeight', parentHeight);
 
-  var width = parent.innerWidth || parent.clientWidth || 600; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-  var height = parent.innerHeight || parent.clientHeight || 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+  var width = parentWidth;
+  var height = parentHeight;
   console.log('width', width);
   console.log('height', height);
 
