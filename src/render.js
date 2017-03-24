@@ -163,6 +163,17 @@ export default function render(props) {
   });
 
   //
+  // calculate the linkWeightSums for each node
+  // 
+  nodes.forEach(d => {
+    d.linkWeightSum = 0;
+  });
+  links.forEach(d => {
+    nodes[d.source].linkWeightSum += d.weight;
+    nodes[d.target].linkWeightSum += d.weight;
+  });
+
+  //
   // detect commnunities
   //
 
@@ -232,7 +243,8 @@ export default function render(props) {
         if (typeof fixedNodeSize !== 'undefined') {
           return `${defaultRadius}px`
         }
-        return `${nodeRadiusScale(d.inDegree)}px`
+        // return `${nodeRadiusScale(d.inDegree)}px`
+        return `${nodeRadiusScale(d.linkWeightSum)}px`
       })
       .classed('background', true);
 
@@ -242,7 +254,8 @@ export default function render(props) {
         if (typeof fixedNodeSize !== 'undefined') {
           return `${defaultRadius}px`
         }
-        return `${nodeRadiusScale(d.inDegree)}px`
+        // return `${nodeRadiusScale(d.inDegree)}px`
+        return `${nodeRadiusScale(d.linkWeightSum)}px`
       })
       .on('mouseover', fade(0.1))
       // .on('mouseout', fade(0.4))
@@ -258,9 +271,13 @@ export default function render(props) {
       return `${
         Math.max(
           Math.min(
-            2 * nodeRadiusScale(d.inDegree),
-            (2 * nodeRadiusScale(d.inDegree) - 8) / this.getComputedTextLength() * labelTextScalingFactor
+            2 * nodeRadiusScale(d.linkWeightSum),
+            (2 * nodeRadiusScale(d.linkWeightSum) - 8) / this.getComputedTextLength() * labelTextScalingFactor
           ),
+          // Math.min(
+          //   2 * nodeRadiusScale(d.inDegree),
+          //   (2 * nodeRadiusScale(d.inDegree) - 8) / this.getComputedTextLength() * labelTextScalingFactor
+          // ),
           8
         )
       }px`;
