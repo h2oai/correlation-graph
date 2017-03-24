@@ -70,8 +70,20 @@ function render(props) {
   var inputData = props.data;
   var options = props.options;
 
-  var width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-  var height = 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+  // const parent = d3.select(selector).nodes()[0];
+  var parent = document.getElementById('graph');
+  var parentWidth = parent.innerWidth || parent.clientWidth || 600;
+  var parentHeight = parent.innerHeight || parent.clientHeight || 600;
+  console.log('parent', parent);
+  console.log('parent.scrollWidth', parent.scrollWidth);
+  console.log('parentWidth', parentWidth);
+  console.log('parentHeight', parentHeight);
+
+  var width = parentWidth;
+  var height = parentHeight;
+  console.log('width', width);
+  console.log('height', height);
+
   var linkWeightThreshold = 0.79;
   var soloNodeLinkWeightThreshold = 0.1;
   var labelTextScalingFactor = 28;
@@ -194,6 +206,17 @@ function render(props) {
   });
 
   //
+  // calculate the linkWeightSums for each node
+  // 
+  nodes.forEach(function (d) {
+    d.linkWeightSum = 0;
+  });
+  links.forEach(function (d) {
+    nodes[d.source].linkWeightSum += d.weight;
+    nodes[d.target].linkWeightSum += d.weight;
+  });
+
+  //
   // detect commnunities
   //
 
@@ -248,14 +271,16 @@ function render(props) {
     if (typeof fixedNodeSize !== 'undefined') {
       return defaultRadius + 'px';
     }
-    return nodeRadiusScale(d.inDegree) + 'px';
+    // return `${nodeRadiusScale(d.inDegree)}px`
+    return nodeRadiusScale(d.linkWeightSum) + 'px';
   }).classed('background', true);
 
   var nodeCircle = node.append('circle').attr('r', function (d) {
     if (typeof fixedNodeSize !== 'undefined') {
       return defaultRadius + 'px';
     }
-    return nodeRadiusScale(d.inDegree) + 'px';
+    // return `${nodeRadiusScale(d.inDegree)}px`
+    return nodeRadiusScale(d.linkWeightSum) + 'px';
   }).on('mouseover', fade(0.1))
   // .on('mouseout', fade(0.4))
   .classed('mark', true);
@@ -267,7 +292,12 @@ function render(props) {
     if (typeof fixedNodeSize !== 'undefined') {
       return defaultRadius * 1 + 'px';
     }
-    return Math.max(Math.min(2 * nodeRadiusScale(d.inDegree), (2 * nodeRadiusScale(d.inDegree) - 8) / this.getComputedTextLength() * labelTextScalingFactor), 8) + 'px';
+    return Math.max(Math.min(2 * nodeRadiusScale(d.linkWeightSum), (2 * nodeRadiusScale(d.linkWeightSum) - 8) / this.getComputedTextLength() * labelTextScalingFactor),
+    // Math.min(
+    //   2 * nodeRadiusScale(d.inDegree),
+    //   (2 * nodeRadiusScale(d.inDegree) - 8) / this.getComputedTextLength() * labelTextScalingFactor
+    // ),
+    8) + 'px';
   }).style('fill', '#666').style('fill-opacity', 1).style('pointer-events', 'none').style('stroke', 'none').attr('class', 'label').attr('dx', function (d) {
     var dxValue = -1 * (this.getComputedTextLength() / 2) + 'px';
     return dxValue;

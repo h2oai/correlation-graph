@@ -15,8 +15,20 @@ export default function render(props) {
   const inputData = props.data;
   const options = props.options;
 
-  const width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-  const height = 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+  // const parent = d3.select(selector).nodes()[0];
+  const parent = document.getElementById('graph');
+  const parentWidth = parent.innerWidth || parent.clientWidth || 600;
+  const parentHeight = parent.innerHeight || parent.clientHeight || 600;
+  console.log('parent', parent);
+  console.log('parent.scrollWidth', parent.scrollWidth);
+  console.log('parentWidth', parentWidth);
+  console.log('parentHeight', parentHeight);
+
+  const width = parentWidth;
+  const height = parentHeight;
+  console.log('width', width);
+  console.log('height', height);
+  
   const linkWeightThreshold = 0.79;
   const soloNodeLinkWeightThreshold = 0.1;
   const labelTextScalingFactor = 28;
@@ -163,6 +175,17 @@ export default function render(props) {
   });
 
   //
+  // calculate the linkWeightSums for each node
+  // 
+  nodes.forEach(d => {
+    d.linkWeightSum = 0;
+  });
+  links.forEach(d => {
+    nodes[d.source].linkWeightSum += d.weight;
+    nodes[d.target].linkWeightSum += d.weight;
+  });
+
+  //
   // detect commnunities
   //
 
@@ -232,7 +255,8 @@ export default function render(props) {
         if (typeof fixedNodeSize !== 'undefined') {
           return `${defaultRadius}px`
         }
-        return `${nodeRadiusScale(d.inDegree)}px`
+        // return `${nodeRadiusScale(d.inDegree)}px`
+        return `${nodeRadiusScale(d.linkWeightSum)}px`
       })
       .classed('background', true);
 
@@ -242,7 +266,8 @@ export default function render(props) {
         if (typeof fixedNodeSize !== 'undefined') {
           return `${defaultRadius}px`
         }
-        return `${nodeRadiusScale(d.inDegree)}px`
+        // return `${nodeRadiusScale(d.inDegree)}px`
+        return `${nodeRadiusScale(d.linkWeightSum)}px`
       })
       .on('mouseover', fade(0.1))
       // .on('mouseout', fade(0.4))
@@ -258,9 +283,13 @@ export default function render(props) {
       return `${
         Math.max(
           Math.min(
-            2 * nodeRadiusScale(d.inDegree),
-            (2 * nodeRadiusScale(d.inDegree) - 8) / this.getComputedTextLength() * labelTextScalingFactor
+            2 * nodeRadiusScale(d.linkWeightSum),
+            (2 * nodeRadiusScale(d.linkWeightSum) - 8) / this.getComputedTextLength() * labelTextScalingFactor
           ),
+          // Math.min(
+          //   2 * nodeRadiusScale(d.inDegree),
+          //   (2 * nodeRadiusScale(d.inDegree) - 8) / this.getComputedTextLength() * labelTextScalingFactor
+          // ),
           8
         )
       }px`;

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "prepublish": "rm -rf build && mkdir build && rollup -c -- index.js",
-    "build": "rm -rf build && mkdir build && rollup -c  -- index.js && cp build/correlation-graph.js ~/workspace/visualizations/correlation-graph-examples/07/ && cp build/correlation-graph.js ~/workspace/visualizations/correlation-graph-examples/10/ && cp build/correlation-graph.js ~/workspace/h2o-3/h2o-core/src/main/resources/www/",
+    "build": "rm -rf build && mkdir build && rollup -c  -- index.js && cp build/correlation-graph.js ~/workspace/visualizations/correlation-graph-examples/07/ && cp build/correlation-graph.js ~/workspace/visualizations/correlation-graph-examples/10/ && cp build/correlation-graph.js ~/workspace/visualizations/correlation-graph-examples/11/ && cp build/correlation-graph.js ~/workspace/h2o-3/h2o-core/src/main/resources/www/",
     "lint": "eslint index.js src --fix"
   },
   "repository": {
