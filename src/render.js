@@ -15,8 +15,20 @@ export default function render(props) {
   const inputData = props.data;
   const options = props.options;
 
-  const width = 960; // window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-  const height = 600; // window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+  // const parent = d3.select(selector).nodes()[0];
+  const parent = document.getElementById('graph');
+  const parentWidth = parent.innerWidth || parent.clientWidth || 600;
+  const parentHeight = parent.innerHeight || parent.clientHeight || 600;
+  console.log('parent', parent);
+  console.log('parent.scrollWidth', parent.scrollWidth);
+  console.log('parentWidth', parentWidth);
+  console.log('parentHeight', parentHeight);
+
+  const width = parentWidth;
+  const height = parentHeight;
+  console.log('width', width);
+  console.log('height', height);
+  
   const linkWeightThreshold = 0.79;
   const soloNodeLinkWeightThreshold = 0.1;
   const labelTextScalingFactor = 28;
