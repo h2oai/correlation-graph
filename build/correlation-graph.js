@@ -75,6 +75,7 @@ function render(props) {
   var parentWidth = parent.innerWidth || parent.clientWidth || 600;
   var parentHeight = parent.innerHeight || parent.clientHeight || 600;
   console.log('parent', parent);
+  console.log('parent.scrollWidth', parent.scrollWidth);
   console.log('parentWidth', parentWidth);
   console.log('parentHeight', parentHeight);
 

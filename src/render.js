@@ -20,6 +20,7 @@ export default function render(props) {
   const parentWidth = parent.innerWidth || parent.clientWidth || 600;
   const parentHeight = parent.innerHeight || parent.clientHeight || 600;
   console.log('parent', parent);
+  console.log('parent.scrollWidth', parent.scrollWidth);
   console.log('parentWidth', parentWidth);
   console.log('parentHeight', parentHeight);
 
