@@ -58,6 +58,15 @@ function dragended(simulation) {
   d3.event.subject.fy = null;
 }
 
+function drawHelpText(props) {
+  var selector = props.selector;
+  var height = props.height;
+  var xOffset = 75;
+  var yOffset = height - 10;
+  var helpText = 'mouse over a node to see it\'s relationships. click the background to reset.';
+  d3.select(selector).append('g').attr('transform', 'translate(' + xOffset + ',' + yOffset + ')').append('text').style('fill', '#666').style('fill-opacity', 1).style('pointer-events', 'none').style('stroke', 'none').style('font-size', 10).text(helpText);
+}
+
 /* global d3 _ jLouvain window document */
 /* eslint-disable newline-per-chained-call */
 
@@ -326,6 +335,12 @@ function render(props) {
   var boundDragended = dragended.bind(this, simulation);
 
   node.call(d3.drag().on('start', boundDragstarted).on('drag', dragged).on('end', boundDragended));
+
+  // draw the help text
+  drawHelpText({
+    selector: 'svg',
+    height: height
+  });
 
   //
   // implement custom forces for clustering communities
