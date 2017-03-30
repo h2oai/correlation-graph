@@ -5,6 +5,7 @@ import ticked from './ticked';
 import dragstarted from './dragstarted';
 import dragged from './dragged';
 import dragended from './dragended';
+import drawHelpText from './drawHelpText';
 
 export default function render(props) {
   //
@@ -276,6 +277,7 @@ export default function render(props) {
   // draw labels
   const label = node.append('text')
     .text(d => d.name)
+
     .style('font-size', function (d) {
       if (typeof fixedNodeSize !== 'undefined') {
         return `${defaultRadius * 1}px`;
@@ -353,6 +355,12 @@ export default function render(props) {
       .on('drag', dragged)
       .on('end', boundDragended)
     );
+
+  // draw the help text
+  drawHelpText({
+    selector: 'svg',
+    height
+  });
 
   //
   // implement custom forces for clustering communities
