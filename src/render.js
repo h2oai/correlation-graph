@@ -6,6 +6,7 @@ import dragstarted from './dragstarted';
 import dragged from './dragged';
 import dragended from './dragended';
 import drawHelpText from './drawHelpText';
+import drawSliderControl from './drawSliderControl';
 
 export default function render(props) {
   //
@@ -361,6 +362,15 @@ export default function render(props) {
     selector: 'svg',
     height
   });
+
+  d3.select('div#graph').append('div')
+    .attr('id', 'slider-container');
+
+  // draw the slider control
+  drawSliderControl({
+    selector: 'div#slider-container',
+    padding: '10px'
+  })
 
   //
   // implement custom forces for clustering communities

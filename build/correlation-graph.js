@@ -67,6 +67,26 @@ function drawHelpText(props) {
   d3.select(selector).append('g').attr('transform', 'translate(' + xOffset + ',' + yOffset + ')').append('text').style('fill', '#666').style('fill-opacity', 1).style('pointer-events', 'none').style('stroke', 'none').style('font-size', 10).text(helpText);
 }
 
+function drawSliderControl(props) {
+  var selector = props.selector;
+  var padding = props.padding;
+
+  d3.select(selector).append('input').attr('type', 'range').attr('min', 0).attr('max', 1).attr('value', 0.356).attr('step', 0.001).style('top', '604px').style('left', '90px').style('height', '36px').style('width', '450px').style('position', 'fixed').attr('id', 'slider');
+
+  d3.select('#slider').on('input', function () {
+    update(+this.value);
+  });
+
+  function update(sliderValue) {
+    // adjust the text on the range slider
+    d3.select('#nRadius-value').text(sliderValue);
+    d3.select('#nRadius').property('value', sliderValue);
+
+    // update the circle radius
+    d3.selectAll('.mark').style('fill-opacity', sliderValue);
+  }
+}
+
 /* global d3 _ jLouvain window document */
 /* eslint-disable newline-per-chained-call */
 
@@ -340,6 +360,14 @@ function render(props) {
   drawHelpText({
     selector: 'svg',
     height: height
+  });
+
+  d3.select('div#graph').append('div').attr('id', 'slider-container');
+
+  // draw the slider control
+  drawSliderControl({
+    selector: 'div#slider-container',
+    padding: '10px'
   });
 
   //
