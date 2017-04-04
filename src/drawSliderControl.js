@@ -1,10 +1,12 @@
 /* global d3 */
+import fade from './fade';
 
 export default function drawSliderControl(props) {
   const selector = props.selector;
   const padding = props.padding;
   const defaultMarkOpacity = props.defaultMarkOpacity;
-  const defaultStrokeOpacity = props.defaultStrokeOpacity;
+  const defaultLinkOpacity = props.defaultLinkOpacity;
+  const defaultLabelOpacity = props.defaultLabelOpacity;
 
   d3.select(selector).append('input')
   .attr('type', 'range')
@@ -30,14 +32,33 @@ export default function drawSliderControl(props) {
     d3.select('#nRadius-value').text(sliderValue);
     d3.select('#nRadius').property('value', sliderValue);
 
-    // update the circle radius
     d3.selectAll('.link')
       .style('stroke-opacity', d => {
         // console.log('d from slider update', d);
         if (d.weight < sliderValue) {
           return 0;
         }
-        return defaultStrokeOpacity;
+        return defaultLinkOpacity;
       });
+
+    d3.selectAll('.mark')
+      .style('fill-opacity', d => {
+        // first style the label associated with the mark
+        // console.log('d from mark selection', d);
+        d3.select(`#node${d.id}`).selectAll('.label')
+          .style('fill-opacity', () => {
+            if (d.maxLinkWeight < sliderValue) {
+              return 0.1;
+            }
+            return defaultLabelOpacity;
+          });
+
+        // then style the mark itself
+        if (d.maxLinkWeight < sliderValue) {
+          return 0.1;
+        }
+        return defaultMarkOpacity;
+      });
+
   }
 }

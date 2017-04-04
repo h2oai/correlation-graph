@@ -71,37 +71,6 @@ function drawHelpText(props) {
 
 /* global d3 */
 
-function drawSliderControl(props) {
-  var selector = props.selector;
-  var padding = props.padding;
-  var defaultMarkOpacity = props.defaultMarkOpacity;
-  var defaultStrokeOpacity = props.defaultStrokeOpacity;
-
-  d3.select(selector).append('input').attr('type', 'range').attr('min', 0).attr('max', 1).attr('value', 0.356).attr('step', 0.001).style('top', '604px').style('left', '90px').style('height', '36px').style('width', '450px').style('position', 'fixed').attr('id', 'slider');
-
-  d3.select('#slider').on('input', function () {
-    update(+this.value);
-  });
-
-  function update(sliderValue) {
-    console.log('sliderValue', sliderValue);
-    // adjust the text on the range slider
-    d3.select('#nRadius-value').text(sliderValue);
-    d3.select('#nRadius').property('value', sliderValue);
-
-    // update the circle radius
-    d3.selectAll('.link').style('stroke-opacity', function (d) {
-      // console.log('d from slider update', d);
-      if (d.weight < sliderValue) {
-        return 0;
-      }
-      return defaultStrokeOpacity;
-    });
-  }
-}
-
-/* global d3 */
-
 function fade(props) {
   var opacity = props.opacity;
   var ignoreLinks = props.ignoreLinks;
@@ -165,6 +134,53 @@ function fade(props) {
       });
     }
   };
+}
+
+/* global d3 */
+function drawSliderControl(props) {
+  var selector = props.selector;
+  var padding = props.padding;
+  var defaultMarkOpacity = props.defaultMarkOpacity;
+  var defaultLinkOpacity = props.defaultLinkOpacity;
+  var defaultLabelOpacity = props.defaultLabelOpacity;
+
+  d3.select(selector).append('input').attr('type', 'range').attr('min', 0).attr('max', 1).attr('value', 0.356).attr('step', 0.001).style('top', '604px').style('left', '90px').style('height', '36px').style('width', '450px').style('position', 'fixed').attr('id', 'slider');
+
+  d3.select('#slider').on('input', function () {
+    update(+this.value);
+  });
+
+  function update(sliderValue) {
+    console.log('sliderValue', sliderValue);
+    // adjust the text on the range slider
+    d3.select('#nRadius-value').text(sliderValue);
+    d3.select('#nRadius').property('value', sliderValue);
+
+    d3.selectAll('.link').style('stroke-opacity', function (d) {
+      // console.log('d from slider update', d);
+      if (d.weight < sliderValue) {
+        return 0;
+      }
+      return defaultLinkOpacity;
+    });
+
+    d3.selectAll('.mark').style('fill-opacity', function (d) {
+      // first style the label associated with the mark
+      // console.log('d from mark selection', d);
+      d3.select('#node' + d.id).selectAll('.label').style('fill-opacity', function () {
+        if (d.maxLinkWeight < sliderValue) {
+          return 0.1;
+        }
+        return defaultLabelOpacity;
+      });
+
+      // then style the mark itself
+      if (d.maxLinkWeight < sliderValue) {
+        return 0.1;
+      }
+      return defaultMarkOpacity;
+    });
+  }
 }
 
 /* global d3 _ jLouvain window document */
@@ -299,29 +315,36 @@ function render(props) {
   console.log('linksForCommunityDetection', linksForCommunityDetection);
 
   //
-  // calculate degree for each node
-  // where `degree` is the number of links
-  // that a node has
+  // initialize calculated node values
   //
-
   nodes.forEach(function (d) {
     d.inDegree = 0;
     d.outDegree = 0;
-  });
-  links.forEach(function (d) {
-    nodes[d.source].outDegree += 1;
-    nodes[d.target].inDegree += 1;
+    d.linkWeightSum = 0;
+    d.maxLinkWeight = 0;
   });
 
+  // 
+  // do link-based calculations in a single forEach loop
   //
-  // calculate the linkWeightSums for each node
-  //
-  nodes.forEach(function (d) {
-    d.linkWeightSum = 0;
-  });
   links.forEach(function (d) {
+    // calculate degree for each node
+    // where `degree` is the number of links
+    // that a node has
+    nodes[d.source].outDegree += 1;
+    nodes[d.target].inDegree += 1;
+
+    // calculate the linkWeightSums for each node
     nodes[d.source].linkWeightSum += d.weight;
     nodes[d.target].linkWeightSum += d.weight;
+
+    // calculate the maxLinkWeight for each node
+    if (d.weight > nodes[d.source].maxLinkWeight) {
+      nodes[d.source].maxLinkWeight = d.weight;
+    }
+    if (d.weight > nodes[d.target].maxLinkWeight) {
+      nodes[d.target].maxLinkWeight = d.weight;
+    }
   });
 
   //
@@ -452,8 +475,9 @@ function render(props) {
   drawSliderControl({
     selector: 'div#slider-container',
     padding: '10px',
+    defaultLinkOpacity: 0.4,
     defaultMarkOpacity: 0.4,
-    defaultStrokeOpacity: 0.4
+    defaultLabelOpacity: 1
   });
 
   //

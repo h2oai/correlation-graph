@@ -163,30 +163,37 @@ export default function render(props) {
   console.log('linksForCommunityDetection', linksForCommunityDetection);
 
   //
-  // calculate degree for each node
-  // where `degree` is the number of links
-  // that a node has
+  // initialize calculated node values
   //
-
   nodes.forEach(d => {
     d.inDegree = 0;
     d.outDegree = 0;
-  });
-  links.forEach(d => {
-    nodes[d.source].outDegree += 1;
-    nodes[d.target].inDegree += 1;
+    d.linkWeightSum = 0;
+    d.maxLinkWeight = 0;
   });
 
+  // 
+  // do link-based calculations in a single forEach loop
   //
-  // calculate the linkWeightSums for each node
-  //
-  nodes.forEach(d => {
-    d.linkWeightSum = 0;
-  });
   links.forEach(d => {
+    // calculate degree for each node
+    // where `degree` is the number of links
+    // that a node has
+    nodes[d.source].outDegree += 1;
+    nodes[d.target].inDegree += 1;
+
+    // calculate the linkWeightSums for each node
     nodes[d.source].linkWeightSum += d.weight;
     nodes[d.target].linkWeightSum += d.weight;
-  });
+
+    // calculate the maxLinkWeight for each node
+    if (d.weight > nodes[d.source].maxLinkWeight) {
+      nodes[d.source].maxLinkWeight = d.weight;
+    }
+    if (d.weight > nodes[d.target].maxLinkWeight) {
+      nodes[d.target].maxLinkWeight = d.weight;
+    }
+  })
 
   //
   // detect commnunities
@@ -376,8 +383,9 @@ export default function render(props) {
   drawSliderControl({
     selector: 'div#slider-container',
     padding: '10px',
+    defaultLinkOpacity: 0.4,
     defaultMarkOpacity: 0.4,
-    defaultStrokeOpacity: 0.4,
+    defaultLabelOpacity: 1
   });
 
   //
