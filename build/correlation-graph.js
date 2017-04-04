@@ -58,6 +58,8 @@ function dragended(simulation) {
   d3.event.subject.fy = null;
 }
 
+/* global d3 */
+
 function drawHelpText(props) {
   var selector = props.selector;
   var height = props.height;
@@ -66,6 +68,8 @@ function drawHelpText(props) {
   var helpText = 'mouse over a node to see it\'s relationships. click the background to reset.';
   d3.select(selector).append('g').attr('transform', 'translate(' + xOffset + ',' + yOffset + ')').append('text').style('fill', '#666').style('fill-opacity', 1).style('pointer-events', 'none').style('stroke', 'none').style('font-size', 10).text(helpText);
 }
+
+/* global d3 */
 
 function drawSliderControl(props) {
   var selector = props.selector;
@@ -94,6 +98,73 @@ function drawSliderControl(props) {
       return defaultStrokeOpacity;
     });
   }
+}
+
+/* global d3 */
+
+function fade(props) {
+  var opacity = props.opacity;
+  var ignoreLinks = props.ignoreLinks;
+
+  var node = props.node;
+  var link = props.link;
+  var isConnected = props.isConnected;
+
+  return function (d) {
+    node.style('stroke-opacity', function (o) {
+      // console.log('o from fade node.style', o);
+      // console.log('isConnected(d, o)', isConnected(d, o));
+      // const thisOpacity = isConnected(d, o) ? defaultOpacity : opacity;
+      // console.log('thisOpacity from fade node.style', thisOpacity);
+      // console.log('this from fade node.style', this);
+
+      // style the mark circle
+      // console.log('this.id', this.id);
+      // this.setAttribute('fill-opacity', thisOpacity);
+      var defaultMarkOpacity = 0.4;
+      d3.select('#' + this.id).selectAll('.mark').style('fill-opacity', function (p) {
+        // console.log('p from fade mark', p);
+        // console.log('isConnected(d, p) mark', isConnected(d, p));
+        var markOpacity = isConnected(d, p) ? defaultMarkOpacity : opacity;
+        // console.log('markOpacity', markOpacity);
+        return markOpacity;
+      });
+
+      // style the label text
+      var defaultLabelOpacity = 1;
+      d3.select('#' + this.id).selectAll('.label').style('fill-opacity', function (p) {
+        // console.log('p from fade label', p);
+        // console.log('isConnected(d, p) label', isConnected(d, p));
+        var labelOpacity = 1;
+        if (!isConnected(d, p) && opacity !== defaultMarkOpacity) {
+          labelOpacity = opacity;
+        }
+        // console.log('labelOpacity', labelOpacity);
+        return labelOpacity;
+      });
+
+      return 1;
+    });
+
+    if (typeof ignoreLinks === 'undefined') {
+      // style the link lines
+      var defaultLinkOpacity = 0.4;
+      link.style('stroke-opacity', function (o) {
+        // console.log('o from fade link style', o);
+        // console.log('d from fade link style', d);
+        if (o.source.id === d.id || o.target.id === d.id) {
+          return defaultLinkOpacity;
+        }
+        return opacity;
+      });
+      link.attr('marker-end', function (o) {
+        if (opacity === defaultLinkOpacity || o.source.id === d.id || o.target.id === d.id) {
+          return 'url(#end-arrow)';
+        }
+        return 'url(#end-arrow-fade)';
+      });
+    }
+  };
 }
 
 /* global d3 _ jLouvain window document */
@@ -136,7 +207,7 @@ function render(props) {
 
   var z = d3.scaleOrdinal(d3.schemeCategory20);
 
-  // determines if nodes and node labels size is fixed 
+  // determines if nodes and node labels size is fixed
   // defaults to `undefined`
   var fixedNodeSize = options.fixedNodeSize;
   var defaultNodeRadius = '9px';
@@ -161,8 +232,7 @@ function render(props) {
   '#efc4ff', // soft violet
   '#a6a39f', // smoke gray
   '#80deca', // teal
-  '#e9d9d8' // pink gray
-  ];
+  '#e9d9d8'];
 
   var textMainGray = '#635F5D';
 
@@ -245,7 +315,7 @@ function render(props) {
 
   //
   // calculate the linkWeightSums for each node
-  // 
+  //
   nodes.forEach(function (d) {
     d.linkWeightSum = 0;
   });
@@ -319,8 +389,13 @@ function render(props) {
     }
     // return `${nodeRadiusScale(d.inDegree)}px`
     return nodeRadiusScale(d.linkWeightSum) + 'px';
-  }).on('mouseover', fade(0.1))
-  // .on('mouseout', fade(0.4))
+  }).on('mouseover', fade({
+    opacity: 0.1,
+    node: node,
+    link: link,
+    isConnected: isConnected
+  }))
+  // .on('mouseout', fade({ opacity: 0.4 }))
   .classed('mark', true);
 
   // draw labels
@@ -449,62 +524,6 @@ function render(props) {
 
   function isConnectedAsTarget(a, b) {
     return linkedByIndex[b.index + ',' + a.index];
-  }
-
-  function fade(opacity) {
-    return function (d) {
-      node.style('stroke-opacity', function (o) {
-        // console.log('o from fade node.style', o);
-        // console.log('isConnected(d, o)', isConnected(d, o));
-        // const thisOpacity = isConnected(d, o) ? defaultOpacity : opacity;
-        // console.log('thisOpacity from fade node.style', thisOpacity);
-        // console.log('this from fade node.style', this);
-
-        // style the mark circle
-        // console.log('this.id', this.id);
-        // this.setAttribute('fill-opacity', thisOpacity);
-        var defaultMarkOpacity = 0.4;
-        d3.select('#' + this.id).selectAll('.mark').style('fill-opacity', function (p) {
-          // console.log('p from fade mark', p);
-          // console.log('isConnected(d, p) mark', isConnected(d, p));
-          var markOpacity = isConnected(d, p) ? defaultMarkOpacity : opacity;
-          // console.log('markOpacity', markOpacity);
-          return markOpacity;
-        });
-
-        // style the label text
-        var defaultLabelOpacity = 1;
-        d3.select('#' + this.id).selectAll('.label').style('fill-opacity', function (p) {
-          // console.log('p from fade label', p);
-          // console.log('isConnected(d, p) label', isConnected(d, p));
-          var labelOpacity = 1;
-          if (!isConnected(d, p) && opacity !== defaultMarkOpacity) {
-            labelOpacity = opacity;
-          }
-          // console.log('labelOpacity', labelOpacity);
-          return labelOpacity;
-        });
-
-        return 1;
-      });
-
-      // style the link lines
-      var defaultLinkOpacity = 0.4;
-      link.style('stroke-opacity', function (o) {
-        // console.log('o from fade link style', o);
-        // console.log('d from fade link style', d);
-        if (o.source.id === d.id || o.target.id === d.id) {
-          return defaultLinkOpacity;
-        }
-        return opacity;
-      });
-      link.attr('marker-end', function (o) {
-        if (opacity === defaultLinkOpacity || o.source.id === d.id || o.target.id === d.id) {
-          return 'url(#end-arrow)';
-        }
-        return 'url(#end-arrow-fade)';
-      });
-    };
   }
 
   function resetFade() {

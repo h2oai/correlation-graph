@@ -18,7 +18,7 @@ export default function ticked(
         return textMainGray;
       }
       return color(communities[d.source.id]);
-    })
+    });
     // .style('stroke-opacity', 0.4);
 
   nodeG
