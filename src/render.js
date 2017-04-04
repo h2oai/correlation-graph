@@ -369,7 +369,9 @@ export default function render(props) {
   // draw the slider control
   drawSliderControl({
     selector: 'div#slider-container',
-    padding: '10px'
+    padding: '10px',
+    defaultMarkOpacity: 0.4,
+    defaultStrokeOpacity: 0.4
   })
 
   //

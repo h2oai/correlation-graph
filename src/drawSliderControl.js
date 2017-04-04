@@ -1,6 +1,8 @@
 export default function drawSliderControl(props) {
   const selector = props.selector;
   const padding = props.padding;
+  const defaultMarkOpacity = props.defaultMarkOpacity;
+  const defaultStrokeOpacity = props.defaultStrokeOpacity;
 
   d3.select(selector).append('input')
   .attr('type', 'range')
@@ -21,12 +23,19 @@ export default function drawSliderControl(props) {
     });
   
   function update(sliderValue) {
+    console.log('sliderValue', sliderValue);
     // adjust the text on the range slider
     d3.select('#nRadius-value').text(sliderValue);
     d3.select('#nRadius').property('value', sliderValue);
 
     // update the circle radius
-    d3.selectAll('.mark') 
-      .style('fill-opacity', sliderValue);
+    d3.selectAll('.link') 
+      .style('stroke-opacity', d => {
+        // console.log('d from slider update', d);
+        if (d.weight < sliderValue) {
+          return 0;
+        }
+        return defaultStrokeOpacity;
+      })
   } 
 }
