@@ -19,7 +19,7 @@
     "d3"
   ],
   "author": "@micahstubbs <micah.stubbs@gmail.com> (https://twitter.com/micahstubbs)",
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/h2oai/correlation-graph/issues"
   },
