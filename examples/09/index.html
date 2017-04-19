@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang='en-US'>
+<meta charset='utf-8'>
+<head>
+  <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet'>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <style>
+      body {font-family: 'Helvetica', cursive;}
+  </style>
+  <script src='d3.v4.min.js'></script>
+  <script src='d3-queue.min.js'></script>
+  <script src='babel.min.js'></script>
+  <script src='jLouvain.js'></script>
+  <script src='lodash.js'></script>
+  <script src='correlation-graph.js'></script>
+</head>
+<body>
+  <script>
+    const paramsString = window.location.search;
+    const searchParams = new URLSearchParams(paramsString);
+    const frameID = searchParams.get('frameID'); // 'small-synth-data'
+    const selector = searchParams.get('selector'); // 'body'
+    const h2oIP = searchParams.get('h2oIP'); // 192.168.0.107
+    const h2oPort = searchParams.get('h2oPort'); // 54321
+    const visDataServerURI = searchParams.get('visDataServerURI'); // https://12e172ff.ngrok.io
+
+    // url used for testing
+    // http://127.0.0.1:57328/09/?frameID=Key_Frame__airlines_aggregated.hex&selector=body
+
+    console.log('frameID', frameID);
+    console.log('selector', selector);
+    console.log('h2oIP', h2oIP);
+    console.log('h2oPort', h2oPort);
+    console.log('visDataServerURI', visDataServerURI);
+
+    //
+    // load data from an API call to the vis-data-server
+    // 
+
+    const visDataServerOptions = {
+      server: visDataServerURI,
+      endPoint: '/vis/network',
+      frameID,
+      h2oIP,
+      h2oPort
+    }
+
+    getFrameDataFromVisDataServer(selector, visDataServerOptions);
+
+    //
+    // define some functions
+    // 
+
+    function getFrameDataFromVisDataServer(selector, options) {
+      console.log('arguments from getFrameDataFromVisDataServer', arguments);
+      const server = options.server;
+      const port = options.port;
+      const endPoint = options.endPoint;
+      const frameID = options.frameID;
+      const tunnel = options.tunnel;
+      const h2oIP = options.h2oIP;
+      const h2oPort = options.h2oPort;
+ 
+      postURL = `${server}${endPoint}`;
+
+      console.log('postURL', postURL);
+
+      const postData = {
+        "graphic": {
+            "type": "network",
+            "parameters": {
+                "matrixType": "data",
+                "normalize": true
+            }
+        },
+        "data": {
+            "uri": `http://${h2oIP}:${h2oPort}/3/Frames/${frameID}`
+        }
+      };
+      console.log('postData', postData);
+
+      d3.request(postURL)
+        .header("Accept-Language", "en-US")
+        .header("X-Requested-With", "XMLHttpRequest")
+        .header("Content-Type","application/json")
+        .mimeType("application/json")
+        .response(function(xhr) { return JSON.parse(xhr.responseText); })
+        .send("POST", JSON.stringify(postData), handleResponse);
+
+      function handleResponse(error, response) {
+        console.log('arguments from handleResponse', arguments);
+        if (error) console.error(error);
+        const parsedResponse = parseResponse(response);
+        window.correlationGraph(selector, parsedResponse, {});
+      }
+    }
+
+    function parseResponse(response) {
+      console.log('arguments from parseResponse', arguments);
+      const responseData = response;
+      const inputData = responseData;
+
+      const graph = {};
+      graph.nodes = [];
+      graph.edges = [];
+
+      inputData[0].nodes.forEach((d, i) => {
+        graph.nodes.push({
+          "id": i,
+          "name": d
+        })
+      })
+
+      inputData[0].edges.forEach((d, i) => {
+        graph.edges.push({
+          "source": d[0],
+          "target": d[1],
+          "weight": inputData[0].weights[i]
+        })
+      })
+    
+      const parsedData = graph;
+      // console.log('parsedData', parsedData);
+      return parsedData;
+    }
+  </script>
+</body>
+</html>

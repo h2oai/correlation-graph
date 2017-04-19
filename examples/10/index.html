@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang='en-US'>
+<meta charset='utf-8'>
+<head>
+  <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet'>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <style>
+      body {font-family: 'Helvetica', cursive;}
+  </style>
+  <script src='d3.v4.min.js'></script>
+  <script src='d3-queue.min.js'></script>
+  <script src='babel.min.js'></script>
+  <script src='jLouvain.js'></script>
+  <script src='lodash.js'></script>
+  <script src='correlation-graph.js'></script>
+  <script src='getFrameDataFromVisDataServer.js'></script> 
+  <script src='handleResponse.js'></script>
+  <script src='parseResponse.js'></script>
+</head>
+<body>
+  <script>
+    const paramsString = window.location.search;
+    const searchParams = new URLSearchParams(paramsString);
+    const frameID = searchParams.get('frame_id'); // Key_Frame__airlines_aggregated.hex
+    const selector = searchParams.get('selector'); // body
+    const h2oIP = searchParams.get('h2o_ip'); // 172.16.2.21
+    const h2oPort = searchParams.get('h2o_port'); // 54321
+    const visDataServerURI = searchParams.get('vis_data_server_uri'); // https://12e172ff.ngrok.io
+
+    // url used for testing
+    // http://127.0.0.1:57328/10/?frame_id=Key_Frame__airlines_aggregated.hex&selector=body&h2o_ip=192.168.0.107&h2o_port=54321&vis_data_server_uri=https://12e172ff.ngrok.io
+
+    console.log('frameID', frameID);
+    console.log('selector', selector);
+    console.log('h2oIP', h2oIP);
+    console.log('h2oPort', h2oPort);
+    console.log('visDataServerURI', visDataServerURI);
+
+    //
+    // load data from an API call to the vis-data-server
+    // 
+
+    const visDataServerOptions = {
+      server: visDataServerURI,
+      endPoint: '/vis/network',
+      frameID,
+      h2oIP,
+      h2oPort
+    }
+
+    getFrameDataFromVisDataServer(selector, visDataServerOptions);
+  </script>
+</body>
+</html>

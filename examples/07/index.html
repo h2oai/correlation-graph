@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang='en-US'>
+<meta charset='utf-8'>
+<head>
+  <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css'>
+  <link rel='stylesheet' href='style.css'>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <script src='d3.v4.min.js'></script>
+  <script src='babel.min.js'></script>
+  <script src='jLouvain.js'></script>
+  <script src='lodash.js'></script>
+  <script src='correlation-graph.js'></script>
+  <script src='draw-pictogram-table.js'></script>
+</head>
+<body>
+  <main class='main'>
+    <div class='main-content'>
+      <div class='graph-container' id='graph'></div>
+    </div>
+    <div class='sidebar'>
+      <div class='table-container'></div>
+      <div class='stats-container'></div>
+    </div>  
+  </main>
+<script>
+  d3.queue()
+    .defer(d3.json, 'graph.json')
+    .await((error, data) => {
+      //
+      // draw correlation graph
+      //
+      if (error) throw error;
+      const correlationGraphProps = {
+        selector: '.graph-container',
+        data,
+        options: { 
+          fixedNodeSize: undefined
+        }
+      }
+      window.correlationGraph(correlationGraphProps);
+      //
+      // draw pictogram table
+      //
+      const pictogramTableProps = {
+        selector: '.table-container',
+        data,
+        options: {
+          topN: 20,
+          linksVariable: 'edges',
+          valueVariable: 'weight',
+          sourceVariable: 'source',
+          targetVariable: 'target',
+          valueVariableHeader: 'correlation',
+          sourceVariableLabel: 'sourceName',
+          targetVariableLabel: 'targetName'
+        }
+      }
+      drawPictogramTable(pictogramTableProps);
+    });
+    //
+    // draw stats table on node mouseover
+    //
+</script>
+</body>
+</html>

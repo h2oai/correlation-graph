@@ -1,0 +1,130 @@
+@font-face {
+   font-family: 'StateFaceRegular';
+   src: url('stateface-regular-webfont.eot');
+   src: url('stateface-regular-webfont.eot?#iefix') format('embedded-opentype'),
+        url('stateface-regular-webfont.woff') format('woff'),
+        url('stateface-regular-webfont.ttf') format('truetype'),
+        url('stateface-regular-webfont.svg#StateFaceRegular') format('svg');
+   font-weight: normal;
+   font-style: normal;
+}
+
+.stateface {
+  font-family: "StateFaceRegular";
+}
+/* tiny reset */
+body {
+  font: 12px monospace;
+  margin: 0;
+  padding: 0;
+}
+
+/* end tiny reset */
+.main {
+  display: flex;
+  -webkit-flex-direction: row; /* Safari */
+  flex-direction:         row;
+  flex-wrap: wrap;
+}
+
+@media screen and (min-width: 480px) {
+  .main-content {
+    padding-right: 20px;
+    padding-left: 20px;
+    
+  }
+  .sidebar {
+    flex-direction: column;
+    background-color: rgba(255,255,255,0.0);
+    filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=1,startColorStr="#E6FFFFFF",endColorStr="#E6FFFFFF");
+    -ms-filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=1,startColorStr="#E6FFFFFF",endColorStr="#E6FFFFFF");
+}
+  }
+}
+
+.table-container {
+  overflow: auto;
+  background-color: rgba(255,255,255,0.0);
+  filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=1,startColorStr="#E6FFFFFF",endColorStr="#E6FFFFFF");
+  -ms-filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=1,startColorStr="#E6FFFFFF",endColorStr="#E6FFFFFF");
+}
+
+table {
+  font: 8px monospace;
+  border-collapse: collapse;
+  position: relative;
+  left: 0px;
+}
+
+th {
+  border-bottom: 0px solid black;
+  cursor: pointer;
+}
+
+td, th {
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
+span.stateface,
+span.fa {
+  display: inline-block;
+}
+
+span.arrow {
+  width: 35px;
+  line-height: 14px;
+  text-align: center;
+}
+
+td > span {
+  float: left;
+}
+
+td > span.left {
+  float: right;
+}
+
+th.left {
+  text-align: right;
+}
+
+th.right {
+  text-align: left;
+}
+
+span.text {
+  width: 40px;
+  text-align: right;
+  padding-right: 10px;
+}
+
+th.emp, td.emp
+th.wage, td.wage {
+  width: 100px;
+}
+
+th.emp_pc, td.emp_pc
+th.wage_pc, td.wage_pc {
+  width: 90px;
+}
+
+.emp span.fa {
+  width: 8px;
+}
+
+.fa-arrow-up {
+  color: darkgreen;
+}
+
+.fa-arrow-left {
+  color: slategrey;
+}
+
+.fa-arrow-right {
+  color: slategrey;
+}
+
+.fa-arrow-down {
+  color: red;
+}
